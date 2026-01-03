@@ -10,16 +10,19 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "react": "^18.3.1",
-        "react-dom": "^18.3.1",
+        "@capacitor/android": "^8.0.0",
+        "@capacitor/core": "^8.0.0",
+        "clsx": "^2.1.0",
         "framer-motion": "^11.0.0",
         "lucide-react": "^0.344.0",
+        "react": "^18.3.1",
+        "react-dom": "^18.3.1",
+        "react-router-dom": "^6.22.0",
         "recharts": "^2.12.0",
-        "clsx": "^2.1.0",
-        "tailwind-merge": "^2.2.1",
-        "react-router-dom": "^6.22.0"
+        "tailwind-merge": "^2.2.1"
     },
     "devDependencies": {
+        "@capacitor/cli": "^8.0.0",
         "@types/react": "^18.3.3",
         "@types/react-dom": "^18.3.0",
         "@vitejs/plugin-react": "^4.3.1",

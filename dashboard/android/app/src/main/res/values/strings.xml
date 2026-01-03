@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">ShieldCall</string>
+    <string name="title_activity_main">ShieldCall</string>
+    <string name="package_name">com.shieldcall.app</string>
+    <string name="custom_url_scheme">com.shieldcall.app</string>
+</resources>
