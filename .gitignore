@@ -1,0 +1,4 @@
+SETUP_GUIDE.md
+node_modules/
+__pycache__
+.env

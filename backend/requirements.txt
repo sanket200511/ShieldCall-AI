@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+supabase
+python-multipart
+python-dotenv
+websockets
+vosk
+scikit-learn
+numpy
+pandas
+nltk
+spacy
