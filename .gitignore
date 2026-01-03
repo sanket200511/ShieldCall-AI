@@ -1,4 +1,10 @@
+.env
+.gitignore
+.git
 SETUP_GUIDE.md
 node_modules/
-__pycache__
-.env
+__pycache__/
+APK_BUILD_INSTRUCTIONS.md
+DEMO_VIDEO_SCRIPT.md
+PRESENTATION_SLIDES.md
+REAL_DATA_SETUP.md
