@@ -1,6 +1,8 @@
+```javascript
 import React, { useState, useEffect } from 'react';
 import { LiveFeed } from '../components/LiveFeed';
-import { ShieldAlert, Activity } from 'lucide-react';
+import { Shield, AlertOctagon, Terminal } from 'lucide-react';
+import { WS_BASE_URL } from '../config';
 
 const LiveThreats = () => {
     const [alerts, setAlerts] = useState([]);
@@ -8,7 +10,7 @@ const LiveThreats = () => {
 
     useEffect(() => {
         // Shared WebSocket connection for real-time updates
-        const ws = new WebSocket('ws://localhost:8000/ws/monitor');
+        const ws = new WebSocket(WS_BASE_URL);
 
         ws.onmessage = (event) => {
             const data = JSON.parse(event.data);

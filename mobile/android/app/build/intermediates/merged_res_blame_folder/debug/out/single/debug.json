@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "com.shieldcall.mobile.app-merged_res-4:/layout_activity_main.xml.flat",
+        "source": "com.shieldcall.mobile.app-main-6:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.shieldcall.mobile.app-merged_res-4:/drawable_gradient_bg.xml.flat",
+        "source": "com.shieldcall.mobile.app-main-6:/drawable/gradient_bg.xml"
+    },
+    {
+        "merged": "com.shieldcall.mobile.app-merged_res-4:/drawable_card_bg.xml.flat",
+        "source": "com.shieldcall.mobile.app-main-6:/drawable/card_bg.xml"
+    }
+]

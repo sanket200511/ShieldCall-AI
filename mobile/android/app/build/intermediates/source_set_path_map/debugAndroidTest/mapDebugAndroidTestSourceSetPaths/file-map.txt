@@ -1,0 +1,7 @@
+com.shieldcall.mobile.test.app-androidTest-0 C:\ShieldCall AI\mobile\android\app\build\generated\res\resValues\androidTest\debug
+com.shieldcall.mobile.test.app-updated_navigation_xml-1 C:\ShieldCall AI\mobile\android\app\build\generated\updated_navigation_xml\debugAndroidTest
+com.shieldcall.mobile.test.app-mergeDebugAndroidTestResources-2 C:\ShieldCall AI\mobile\android\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+com.shieldcall.mobile.test.app-mergeDebugAndroidTestResources-3 C:\ShieldCall AI\mobile\android\app\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+com.shieldcall.mobile.test.app-debugAndroidTest-4 C:\ShieldCall AI\mobile\android\app\build\intermediates\merged_res\debugAndroidTest\mergeDebugAndroidTestResources
+com.shieldcall.mobile.test.app-jetified-core-1.5.0-5 C:\Users\ASUS\.gradle\caches\8.13\transforms\50e34bd45cde1be89bec057cd772a220\transformed\jetified-core-1.5.0\res
+com.shieldcall.mobile.test.app-jetified-annotation-experimental-1.3.0-6 C:\Users\ASUS\.gradle\caches\8.13\transforms\fc24eca0eba7592e1dba9830b5be6087\transformed\jetified-annotation-experimental-1.3.0\res

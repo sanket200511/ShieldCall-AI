@@ -1,0 +1,19 @@
+R_DEF: Internal format may change without notice
+local
+drawable card_bg
+drawable gradient_bg
+drawable ic_launcher_background
+drawable ic_launcher_foreground
+id btnSettings
+id cardAction
+id cardAnalyzer
+id cardDatabase
+id cardLiveShield
+id cardNetwork
+id tvProtectionStatus
+id tvShieldStatus
+layout activity_main
+mipmap ic_launcher
+mipmap ic_launcher_round
+xml backup_rules
+xml data_extraction_rules

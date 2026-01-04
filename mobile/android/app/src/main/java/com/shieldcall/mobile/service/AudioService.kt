@@ -82,27 +82,25 @@ class AudioService : Service() {
                 }
 
                 override fun onError(error: Int) {
-                    // Silently restart on error (e.g. no match)
-                     if (isListening) {
-                         // Delay slightly to prevent loop crash
-                         handler.postDelayed({ speechRecognizer?.startListening(recognitionIntent) }, 500)
-                     }
+                    if (isListening) {
+                        // Debounce restart to prevent "on/off" loop
+                        val delay = if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) 500L else 2000L
+                        handler.postDelayed({ safeStartListening() }, delay)
+                    }
                 }
 
                 override fun onResults(results: Bundle?) {
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     if (!matches.isNullOrEmpty()) {
-                        val text = matches[0]
-                        sendTranscript(text)
+                        sendTranscript(matches[0])
                     }
-                    if (isListening) speechRecognizer?.startListening(recognitionIntent)
+                    if (isListening) safeStartListening()
                 }
 
                 override fun onPartialResults(partialResults: Bundle?) {
                     val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     if (!matches.isNullOrEmpty()) {
-                        val text = matches[0]
-                        sendTranscript(text)
+                        sendTranscript(matches[0]) // Stream partials for faster detection
                     }
                 }
 
@@ -110,76 +108,111 @@ class AudioService : Service() {
             })
 
             isListening = true
-            speechRecognizer?.startListening(recognitionIntent)
+            safeStartListening()
         } else {
             Log.e("AudioService", "Speech Recognition Not Available")
         }
     }
 
+    private fun safeStartListening() {
+        if (!isListening) return
+        try {
+            speechRecognizer?.startListening(recognitionIntent)
+        } catch (e: Exception) {
+            // Service might be busy or unavailable
+            Log.e("AudioService", "Start listening failed: ${e.message}")
+        }
+    }
+
     private fun connectWebSocket() {
-        val ip = getSharedPreferences("ShieldCallPrefs", Context.MODE_PRIVATE).getString("server_ip", "10.0.2.2") ?: "10.0.2.2"
-        val request = Request.Builder().url("ws://$ip:8000/ws/monitor").build()
+        val baseUrl = getSharedPreferences("ShieldCallPrefs", Context.MODE_PRIVATE).getString("server_url", "http://10.0.2.2:8000") ?: "http://10.0.2.2:8000"
         
+        // Convert HTTP/S to WS/S
+        val wsUrl = when {
+            baseUrl.startsWith("https://") -> baseUrl.replace("https://", "wss://")
+            baseUrl.startsWith("http://") -> baseUrl.replace("http://", "ws://")
+            else -> "ws://$baseUrl"
+        }
+
+        val request = Request.Builder().url("$wsUrl/ws/monitor").build()
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
-                val payload = JSONObject().apply {
+                Log.d("AudioService", "WebSocket Connected to $wsUrl")
+                val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
+                val json = JSONObject().apply {
                     put("type", "REGISTER_DEVICE")
                     put("device_id", android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID))
-                    put("device_name", "${Build.MANUFACTURER} ${Build.MODEL}")
+                    put("device_name", deviceName)
                 }
-                webSocket.send(payload.toString())
+                webSocket.send(json.toString())
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
                 try {
                     val json = JSONObject(text)
                     if (json.optString("type") == "NEW_THREAT") {
-                        val scamType = json.optString("scam_type")
-                        val risk = json.optInt("risk_score")
-                        showThreatAlert(scamType, risk)
+                        val risk = json.optInt("risk_score", 0)
+                        val type = json.optString("scam_type", "Unknown")
+                        if (risk > 70) { // Server confirms threat
+                            showThreatAlert(type, risk)
+                        }
                     }
                 } catch (e: Exception) {
-                    Log.e("AudioService", "WS Error: ${e.message}")
+                    Log.e("AudioService", "Message parse error: ${e.message}")
                 }
             }
-            
-             override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
-                 // Try reconnect logic if needed, or simple close
-                 super.onClosing(webSocket, code, reason)
-             }
-             
-             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                 Log.e("AudioService", "WS Connection Failed: ${t.message}")
-             }
+
+            override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                Log.e("AudioService", "WebSocket Failure: ${t.message}")
+                // Retry?
+            }
         })
     }
-    
+
     private fun sendTranscript(text: String) {
-        val payload = JSONObject().apply {
+        val json = JSONObject().apply {
             put("type", "AUDIO_CHUNK")
             put("text", text)
         }
-        webSocket?.send(payload.toString())
+        webSocket?.send(json.toString())
+        Log.d("AudioService", "Sent: $text")
     }
 
+    @SuppressLint("MissingPermission")
     private fun showThreatAlert(scamType: String, risk: Int) {
         val channelId = "ShieldCallAlerts"
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(channelId, "Threat Alerts", NotificationManager.IMPORTANCE_HIGH)
+            channel.enableVibration(true)
+            channel.vibrationPattern = longArrayOf(0, 500, 200, 500, 200, 1000)
+            val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
         }
         
+        // Launch Main Activity with warning flag? Or just high-priority notification.
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("THREAT_ALERT", true)
+            putExtra("THREAT_TYPE", scamType)
+        }
+        val pendingIntent = PendingIntent.getActivity(this, 1, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+
         val notification = NotificationCompat.Builder(this, channelId)
-            .setContentTitle("⚠️ POTENTIAL SCAM DETECTED!")
+            .setContentTitle("🚨 POTENTIAL SCAM DETECTED!")
             .setContentText("$scamType (Risk: $risk%)")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setVibrate(longArrayOf(0, 500, 200, 500))
+            .setFullScreenIntent(pendingIntent, true) // Red Screen Overlay effect via Activity
+            .setAutoCancel(true)
             .build()
             
-        manager.notify(System.currentTimeMillis().toInt(), notification)
+        try {
+            androidx.core.app.NotificationManagerCompat.from(this).notify(System.currentTimeMillis().toInt(), notification)
+        } catch (e: Exception) {
+            Log.e("AudioService", "Notify failed: ${e.message}")
+        }
     }
 
     override fun onDestroy() {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Shield, AlertTriangle, Search, Plus } from 'lucide-react';
+import { ShieldAlert, Search, ThumbsUp, MessageSquare } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 
 const CommunityPage = () => {
     const [reports, setReports] = useState([]);
@@ -7,7 +8,7 @@ const CommunityPage = () => {
     const [reason, setReason] = useState('');
 
     React.useEffect(() => {
-        fetch('http://localhost:8000/blacklist/list')
+        fetch(`${API_BASE_URL}/blacklist/list`)
             .then(res => res.json())
             .then(data => {
                 // Map API format to UI format if needed
@@ -37,7 +38,7 @@ const CommunityPage = () => {
 
         // Backend Call
         try {
-            await fetch('http://localhost:8000/blacklist/report', {
+            await fetch(`${API_BASE_URL}/blacklist/report`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -1,12 +1,28 @@
-// Automatically detect the API Host based on where the frontend is loaded from.
-// This allows the app to work on 'localhost' AND on '192.168.x.x' (Phone) without code changes.
+// Centralized Configuration for API URLs
 
-const hostname = window.location.hostname;
-const protocol = window.location.protocol;
-const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
+// Getting the Base URL from Environment (Vite) or consistent default
+const getBaseUrl = () => {
+    // In Vite, env vars are accessed via import.meta.env
+    // VITE_API_URL should be set in production to your backend (e.g., https://my-backend.railway.app)
+    let url = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
-// Backend is always on Port 8001
-export const API_BASE_URL = `${protocol}//${hostname}:8001`;
-export const WS_URL = `${wsProtocol}//${hostname}:8001/ws/monitor`;
+    // Remove trailing slash if present
+    if (url.endsWith("/")) url = url.slice(0, -1);
+    return url;
+};
 
-console.log("Configuration Loaded:", { API_BASE_URL, WS_URL });
+export const API_BASE_URL = getBaseUrl();
+
+// WebSocket URL needs to change protocol from http/s to ws/s
+export const WS_BASE_URL = (() => {
+    let url = API_BASE_URL;
+    if (url.startsWith("https://")) {
+        return url.replace("https://", "wss://") + "/ws/monitor";
+    } else if (url.startsWith("http://")) {
+        return url.replace("http://", "ws://") + "/ws/monitor";
+    }
+    // Fallback if no protocol specified (rare)
+    return "ws://" + url + "/ws/monitor";
+})();
+
+console.log("ShieldCall Config Loaded:", { API_BASE_URL, WS_BASE_URL });

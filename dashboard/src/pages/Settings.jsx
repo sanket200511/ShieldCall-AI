@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Settings as SettingsIcon, Bell, Shield, Server, Volume2 } from 'lucide-react';
+import { API_BASE_URL, WS_BASE_URL } from '../config';
 
 const Settings = () => {
     const [config, setConfig] = useState({
@@ -43,7 +44,7 @@ const Settings = () => {
                         <div className="flex items-center justify-between p-4 bg-slate-950/50 rounded-xl">
                             <div>
                                 <div className="font-bold text-white">Auto-Report to Authorities</div>
-                                <div className="text-sm text-slate-500">Automatically forward high-confidence (&gt;90%) transcripts to Cyber Cell</div>
+                                <div className="text-sm text-slate-500">Automatically forward high-confidence (>90%) transcripts to Cyber Cell</div>
                             </div>
                             <button
                                 onClick={() => toggle('reportToPolice')}
@@ -65,11 +66,11 @@ const Settings = () => {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 bg-slate-950/50 rounded-xl">
                             <div className="text-sm text-slate-500">API Endpoint</div>
-                            <div className="font-mono text-green-400">http://localhost:8000</div>
+                            <div className="font-mono text-green-400">{API_BASE_URL}</div>
                         </div>
                         <div className="p-4 bg-slate-950/50 rounded-xl">
                             <div className="text-sm text-slate-500">WebSocket Node</div>
-                            <div className="font-mono text-green-400">ws://localhost:8000/ws/monitor</div>
+                            <div className="font-mono text-green-400">{WS_BASE_URL}</div>
                         </div>
                         <div className="p-4 bg-slate-950/50 rounded-xl">
                             <div className="text-sm text-slate-500">Database Connection</div>

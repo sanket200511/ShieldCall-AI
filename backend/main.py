@@ -162,7 +162,9 @@ def analyze_text(req: TextAnalysisRequest):
     }
 
 # --- NEW: Blacklist Module ---
-blacklist_memory = {"+1234567890", "+9876543210"}  # Fallback memory store
+blacklist_memory = {
+    "+12025550123", "+919876543210", "+442079460123", "+918888888888", "+1555010999"
+}
 
 class BlacklistRequest(BaseModel):
     phone: str
@@ -282,10 +284,16 @@ async def websocket_endpoint(websocket: WebSocket):
                     await manager.broadcast({"type": "DEVICE_LIST_UPDATE", "devices": list(manager.device_map.values())})
 
                 text = message.get('text', '').lower()
-                scam_words = ["otp", "cvv", "lottery", "pay", "bank", "police", "refund"]
+                scam_words = ["otp", "cvv", "lottery", "pay", "bank", "police", "refund", "card", "password", "urgent"]
                 matches = sum(1 for word in scam_words if word in text)
                 
-                risk_score = 65 + (matches * 10) if matches > 0 else 0
+                # Make detection more aggressive for demonstration
+                risk_score = 0
+                if matches > 0:
+                    risk_score = 85 + (matches * 10) # Instant high alert if any keyword found
+                elif "hello" in text or "hi" in text:
+                    risk_score = 10 
+
                 
                 if risk_score > 50:
                     payload = {

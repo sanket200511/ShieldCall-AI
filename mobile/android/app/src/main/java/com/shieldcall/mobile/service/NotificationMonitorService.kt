@@ -1,16 +1,21 @@
 package com.shieldcall.mobile.service
 
+import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import okhttp3.*
-import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
@@ -19,15 +24,14 @@ import com.shieldcall.mobile.R
 class NotificationMonitorService : NotificationListenerService() {
 
     private val client = OkHttpClient()
-    private val TARGET_PACKAGES = listOf("com.whatsapp", "com.android.mms", "com.google.android.apps.messaging")
+    private val targetPackages = listOf("com.whatsapp", "com.android.mms", "com.google.android.apps.messaging")
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         val packageName = sbn?.packageName ?: return
         
-        if (packageName in TARGET_PACKAGES) {
+        if (packageName in targetPackages) {
             val extras = sbn.notification.extras
             val text = extras.getCharSequence(Notification.EXTRA_TEXT)?.toString()
-            val title = extras.getCharSequence(Notification.EXTRA_TITLE)?.toString()
 
             if (!text.isNullOrEmpty()) {
                 Log.d("ShieldCallAnalyzer", "Intercepted from $packageName: $text")
@@ -37,15 +41,15 @@ class NotificationMonitorService : NotificationListenerService() {
     }
 
     private fun sendToBackend(text: String, source: String) {
-        val ip = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_ip", "10.0.2.2") ?: "10.0.2.2"
+        val baseUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://10.0.2.2:8000") ?: "http://10.0.2.2:8000"
         val json = JSONObject().apply {
             put("text", text)
             put("source", source)
         }
 
         val request = Request.Builder()
-            .url("http://$ip:8000/analyze/text")
-            .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8"), json.toString()))
+            .url("$baseUrl/analyze/text")
+            .post(json.toString().toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull()))
             .build()
 
         client.newCall(request).enqueue(object : Callback {
@@ -69,12 +73,16 @@ class NotificationMonitorService : NotificationListenerService() {
         })
     }
 
+    @SuppressLint("MissingPermission")
     private fun raiseAlert(source: String, verdict: String) {
         val channelId = "ShieldCallAnalyzerAlerts"
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
+        
+        // Create Notification Channel for Android O+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(channelId, "Analyzer Alerts", NotificationManager.IMPORTANCE_HIGH)
+            val name = "Analyzer Alerts"
+            val importance = NotificationManager.IMPORTANCE_HIGH
+            val channel = NotificationChannel(channelId, name, importance)
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }
 
@@ -85,7 +93,20 @@ class NotificationMonitorService : NotificationListenerService() {
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setAutoCancel(true)
             .build()
+            
+        // Permission Check for Android 13+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                 Log.e("ShieldCall", "Missing POST_NOTIFICATIONS permission")
+                 return
+             }
+        }
 
-        manager.notify(System.currentTimeMillis().toInt(), notification)
+        // Use Compat Manager for reliability
+        try {
+            NotificationManagerCompat.from(this).notify(System.currentTimeMillis().toInt(), notification)
+        } catch (e: Exception) {
+            Log.e("ShieldCall", "Failed to post notification: ${e.message}")
+        }
     }
 }

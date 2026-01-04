@@ -86,20 +86,21 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showServerConfigDialog() {
-        val currentIp = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_ip", "10.0.2.2")
+        val currentUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://10.0.2.2:8000")
         val input = EditText(this)
-        input.setText(currentIp)
-        input.hint = "192.168.1.X"
+        input.setText(currentUrl)
+        input.hint = "https://api.yourbackend.com"
 
         AlertDialog.Builder(this)
-            .setTitle("Server Configuration")
-            .setMessage("Enter Backend IP Address (e.g. 192.168.1.5):")
+            .setTitle("Server URL Configuration")
+            .setMessage("Enter Full Backend URL (include http/https):")
             .setView(input)
             .setPositiveButton("Save") { _, _ ->
-                val newIp = input.text.toString()
-                getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).edit().putString("server_ip", newIp).apply()
-                Toast.makeText(this, "IP Saved: $newIp", Toast.LENGTH_SHORT).show()
-                // Restart services if needed to apply new IP
+                var newUrl = input.text.toString().trim()
+                if (newUrl.endsWith("/")) newUrl = newUrl.dropLast(1)
+                
+                getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).edit().putString("server_url", newUrl).apply()
+                Toast.makeText(this, "URL Saved: $newUrl", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancel", null)
             .show()
@@ -122,9 +123,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkBlacklist(phone: String) {
-        val ip = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_ip", "10.0.2.2") ?: "10.0.2.2"
+        val baseUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://10.0.2.2:8000") ?: "http://10.0.2.2:8000"
         val request = Request.Builder()
-            .url("http://$ip:8000/blacklist/check?phone=$phone")
+            .url("$baseUrl/blacklist/check?phone=$phone")
             .build()
 
 

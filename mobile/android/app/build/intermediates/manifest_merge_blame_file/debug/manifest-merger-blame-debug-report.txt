@@ -1,0 +1,175 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.shieldcall.mobile"
+4    android:versionCode="1"
+5    android:versionName="1.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="24"
+9        android:targetSdkVersion="34" />
+10
+11    <uses-permission android:name="android.permission.INTERNET" />
+11-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:5:5-67
+11-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:5:22-64
+12    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+12-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:6:5-71
+12-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:6:22-68
+13    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+13-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:7:5-77
+13-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:7:22-74
+14    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+14-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:8:5-88
+14-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:8:22-85
+15
+16    <!-- For Analyzer Feature -->
+17    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" />
+17-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:11:5-12:47
+17-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:11:22-90
+18
+19    <permission
+19-->[androidx.core:core:1.12.0] C:\Users\ASUS\.gradle\caches\transforms-4\a09928384ec1935e808ab75bc8da5541\transformed\core-1.12.0\AndroidManifest.xml:22:5-24:47
+20        android:name="com.shieldcall.mobile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+20-->[androidx.core:core:1.12.0] C:\Users\ASUS\.gradle\caches\transforms-4\a09928384ec1935e808ab75bc8da5541\transformed\core-1.12.0\AndroidManifest.xml:23:9-81
+21        android:protectionLevel="signature" />
+21-->[androidx.core:core:1.12.0] C:\Users\ASUS\.gradle\caches\transforms-4\a09928384ec1935e808ab75bc8da5541\transformed\core-1.12.0\AndroidManifest.xml:24:9-44
+22
+23    <uses-permission android:name="com.shieldcall.mobile.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+23-->[androidx.core:core:1.12.0] C:\Users\ASUS\.gradle\caches\transforms-4\a09928384ec1935e808ab75bc8da5541\transformed\core-1.12.0\AndroidManifest.xml:26:5-97
+23-->[androidx.core:core:1.12.0] C:\Users\ASUS\.gradle\caches\transforms-4\a09928384ec1935e808ab75bc8da5541\transformed\core-1.12.0\AndroidManifest.xml:26:22-94
+24
+25    <application
+25-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:14:5-49:19
+26        android:allowBackup="true"
+26-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:15:9-35
+27        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+27-->[androidx.core:core:1.12.0] C:\Users\ASUS\.gradle\caches\transforms-4\a09928384ec1935e808ab75bc8da5541\transformed\core-1.12.0\AndroidManifest.xml:28:18-86
+28        android:dataExtractionRules="@xml/data_extraction_rules"
+28-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:16:9-65
+29        android:debuggable="true"
+30        android:extractNativeLibs="false"
+31        android:fullBackupContent="@xml/backup_rules"
+31-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:17:9-54
+32        android:icon="@mipmap/ic_launcher"
+32-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:18:9-43
+33        android:label="ShieldCall AI"
+33-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:19:9-38
+34        android:roundIcon="@mipmap/ic_launcher_round"
+34-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:20:9-54
+35        android:supportsRtl="true"
+35-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:21:9-35
+36        android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" >
+36-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:22:9-77
+37        <activity
+37-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:25:9-32:20
+38            android:name="com.shieldcall.mobile.MainActivity"
+38-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:26:13-41
+39            android:exported="true" >
+39-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:27:13-36
+40            <intent-filter>
+40-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:28:13-31:29
+41                <action android:name="android.intent.action.MAIN" />
+41-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:29:17-69
+41-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:29:25-66
+42
+43                <category android:name="android.intent.category.LAUNCHER" />
+43-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:30:17-77
+43-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:30:27-74
+44            </intent-filter>
+45        </activity>
+46
+47        <service
+47-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:34:9-38:40
+48            android:name="com.shieldcall.mobile.service.AudioService"
+48-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:35:13-49
+49            android:enabled="true"
+49-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:37:13-35
+50            android:exported="false"
+50-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:38:13-37
+51            android:foregroundServiceType="microphone" />
+51-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:36:13-55
+52        <service
+52-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:40:9-47:19
+53            android:name="com.shieldcall.mobile.service.NotificationMonitorService"
+53-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:40:18-68
+54            android:exported="true"
+54-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:43:13-36
+55            android:label="ShieldCall Analyzer"
+55-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:41:13-48
+56            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" >
+56-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:42:13-87
+57            <intent-filter>
+57-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:44:13-46:29
+58                <action android:name="android.service.notification.NotificationListenerService" />
+58-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:45:17-99
+58-->C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:45:25-96
+59            </intent-filter>
+60        </service>
+61
+62        <provider
+62-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ASUS\.gradle\caches\transforms-4\446dcb565ba624b091720066db1df077\transformed\emoji2-1.2.0\AndroidManifest.xml:24:9-32:20
+63            android:name="androidx.startup.InitializationProvider"
+63-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ASUS\.gradle\caches\transforms-4\446dcb565ba624b091720066db1df077\transformed\emoji2-1.2.0\AndroidManifest.xml:25:13-67
+64            android:authorities="com.shieldcall.mobile.androidx-startup"
+64-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ASUS\.gradle\caches\transforms-4\446dcb565ba624b091720066db1df077\transformed\emoji2-1.2.0\AndroidManifest.xml:26:13-68
+65            android:exported="false" >
+65-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ASUS\.gradle\caches\transforms-4\446dcb565ba624b091720066db1df077\transformed\emoji2-1.2.0\AndroidManifest.xml:27:13-37
+66            <meta-data
+66-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ASUS\.gradle\caches\transforms-4\446dcb565ba624b091720066db1df077\transformed\emoji2-1.2.0\AndroidManifest.xml:29:13-31:52
+67                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+67-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ASUS\.gradle\caches\transforms-4\446dcb565ba624b091720066db1df077\transformed\emoji2-1.2.0\AndroidManifest.xml:30:17-75
+68                android:value="androidx.startup" />
+68-->[androidx.emoji2:emoji2:1.2.0] C:\Users\ASUS\.gradle\caches\transforms-4\446dcb565ba624b091720066db1df077\transformed\emoji2-1.2.0\AndroidManifest.xml:31:17-49
+69            <meta-data
+69-->[androidx.lifecycle:lifecycle-process:2.6.1] C:\Users\ASUS\.gradle\caches\transforms-4\b8c281f2c54a2dad61bc87c778b5cdea\transformed\lifecycle-process-2.6.1\AndroidManifest.xml:29:13-31:52
+70                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+70-->[androidx.lifecycle:lifecycle-process:2.6.1] C:\Users\ASUS\.gradle\caches\transforms-4\b8c281f2c54a2dad61bc87c778b5cdea\transformed\lifecycle-process-2.6.1\AndroidManifest.xml:30:17-78
+71                android:value="androidx.startup" />
+71-->[androidx.lifecycle:lifecycle-process:2.6.1] C:\Users\ASUS\.gradle\caches\transforms-4\b8c281f2c54a2dad61bc87c778b5cdea\transformed\lifecycle-process-2.6.1\AndroidManifest.xml:31:17-49
+72            <meta-data
+72-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:29:13-31:52
+73                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+73-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:30:17-85
+74                android:value="androidx.startup" />
+74-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:31:17-49
+75        </provider>
+76
+77        <receiver
+77-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:34:9-52:20
+78            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+78-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:35:13-76
+79            android:directBootAware="false"
+79-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:36:13-44
+80            android:enabled="true"
+80-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:37:13-35
+81            android:exported="true"
+81-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:38:13-36
+82            android:permission="android.permission.DUMP" >
+82-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:39:13-57
+83            <intent-filter>
+83-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:40:13-42:29
+84                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+84-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:41:17-91
+84-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:41:25-88
+85            </intent-filter>
+86            <intent-filter>
+86-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:43:13-45:29
+87                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+87-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:44:17-85
+87-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:44:25-82
+88            </intent-filter>
+89            <intent-filter>
+89-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:46:13-48:29
+90                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+90-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:47:17-88
+90-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:47:25-85
+91            </intent-filter>
+92            <intent-filter>
+92-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:49:13-51:29
+93                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+93-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:50:17-95
+93-->[androidx.profileinstaller:profileinstaller:1.3.0] C:\Users\ASUS\.gradle\caches\transforms-4\8a3d37ee385e6c84ba5e800b225df9e0\transformed\profileinstaller-1.3.0\AndroidManifest.xml:50:25-92
+94            </intent-filter>
+95        </receiver>
+96    </application>
+97
+98</manifest>

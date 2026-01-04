@@ -1,4 +1,7 @@
+```javascript
 import React, { useState } from 'react';
+import { FileText, Send, Paperclip } from 'lucide-react';
+import { API_BASE_URL } from '../config';
 import { motion } from 'framer-motion';
 
 const ReportPage = () => {
@@ -18,7 +21,7 @@ const ReportPage = () => {
         setStatus(null);
 
         try {
-            const response = await fetch('http://localhost:8000/report/generate', {
+            const response = await fetch(`${ API_BASE_URL } /report/generate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
@@ -129,9 +132,9 @@ const ReportPage = () => {
                         <button 
                             type="submit"
                             disabled={loading}
-                            className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2 transition-all
-                                ${loading ? 'bg-slate-700 cursor-not-allowed' : 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 shadow-red-500/20'}
-                            `}
+                            className={`w - full py - 4 rounded - xl font - bold text - lg shadow - lg flex items - center justify - center gap - 2 transition - all
+                                ${ loading ? 'bg-slate-700 cursor-not-allowed' : 'bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 shadow-red-500/20' }
+`}
                         >
                             {loading ? (
                                 <>Generating Report...</>
