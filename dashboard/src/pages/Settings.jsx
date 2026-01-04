@@ -1,132 +1,85 @@
 import React, { useState } from 'react';
-import { User, Bell, Shield, Eye, Save, Plus } from 'lucide-react';
-import { storage } from '../utils/storage';
+import { Settings as SettingsIcon, Bell, Shield, Server, Volume2 } from 'lucide-react';
 
-export default function Settings() {
-    const [elderlyMode, setElderlyMode] = useState(storage.get('elderly_mode', false));
-    const [notifications, setNotifications] = useState(true);
+const Settings = () => {
+    const [config, setConfig] = useState({
+        notifications: true,
+        autoBlocking: true,
+        soundAlerts: false,
+        reportToPolice: false
+    });
 
-    const toggleElderly = () => {
-        const newState = !elderlyMode;
-        setElderlyMode(newState);
-        storage.set('elderly_mode', newState);
-        // In a real app, this would trigger a global context update to increase font sizes
-        if (newState) {
-            document.body.style.fontSize = '120%';
-        } else {
-            document.body.style.fontSize = '100%';
-        }
-    };
+    const toggle = (key) => setConfig(prev => ({ ...prev, [key]: !prev[key] }));
 
     return (
-        <div className="p-8 h-full overflow-y-auto">
-            <h1 className="text-3xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-slate-200 to-slate-400">
-                System Preferences
-            </h1>
+        <div className="p-8 max-w-4xl mx-auto">
+            <header className="mb-8">
+                <h1 className="text-3xl font-bold text-white">System Settings</h1>
+                <p className="text-slate-400 mt-2">Configure ShieldCall global parameters.</p>
+            </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-6">
+                {/* Section 1: Protection */}
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                        <Shield className="text-blue-400" size={20} />
+                        Global Protection
+                    </h2>
 
-                {/* Accessibility Section */}
-                <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-2xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-purple-500/20 rounded-lg text-purple-400">
-                            <Eye size={24} />
-                        </div>
-                        <h2 className="text-xl font-bold">Accessibility</h2>
-                    </div>
-
-                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
-                        <div>
-                            <div className="font-bold text-lg">Elderly Mode</div>
-                            <div className="text-sm text-slate-400">Increases contrast and button sizes.</div>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                            <input
-                                type="checkbox"
-                                className="sr-only peer"
-                                checked={elderlyMode}
-                                onChange={toggleElderly}
-                            />
-                            <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                        </label>
-                    </div>
-                </div>
-
-                {/* Trusted Contacts */}
-                <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-2xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-green-500/20 rounded-lg text-green-400">
-                            <Shield size={24} />
-                        </div>
-                        <h2 className="text-xl font-bold">Trusted Contacts</h2>
-                    </div>
-
-                    <div className="space-y-3">
-                        {['Son (Rahul)', 'Daughter (Priya)'].map((contact, i) => (
-                            <div key={i} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                                <span className="font-medium">{contact}</span>
-                                <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">Verified</span>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between p-4 bg-slate-950/50 rounded-xl">
+                            <div>
+                                <div className="font-bold text-white">Auto-Block Scammers</div>
+                                <div className="text-sm text-slate-500">Automatically disconnect calls from known blacklist numbers</div>
                             </div>
-                        ))}
-                        <button className="w-full py-3 border border-dashed border-white/20 rounded-lg text-slate-400 hover:bg-white/5 flex items-center justify-center gap-2">
-                            <Plus size={16} /> Add Contact
-                        </button>
-                    </div>
-                </div>
-
-                {/* Account Info */}
-                <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-2xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-blue-500/20 rounded-lg text-blue-400">
-                            <User size={24} />
+                            <button
+                                onClick={() => toggle('autoBlocking')}
+                                className={`w-12 h-6 rounded-full transition-colors relative ${config.autoBlocking ? 'bg-blue-600' : 'bg-slate-700'}`}
+                            >
+                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.autoBlocking ? 'left-7' : 'left-1'}`} />
+                            </button>
                         </div>
-                        <h2 className="text-xl font-bold">Profile</h2>
-                    </div>
 
-                    <div className="space-y-4">
-                        <div>
-                            <label className="text-xs text-slate-400 uppercase">Username</label>
-                            <input type="text" value="SuperAdmin" readOnly className="w-full bg-black/20 border border-white/10 rounded-lg p-2 mt-1 text-slate-300" />
-                        </div>
-                        <div>
-                            <label className="text-xs text-slate-400 uppercase">Region</label>
-                            <input type="text" value="India (IN)" readOnly className="w-full bg-black/20 border border-white/10 rounded-lg p-2 mt-1 text-slate-300" />
+                        <div className="flex items-center justify-between p-4 bg-slate-950/50 rounded-xl">
+                            <div>
+                                <div className="font-bold text-white">Auto-Report to Authorities</div>
+                                <div className="text-sm text-slate-500">Automatically forward high-confidence (&gt;90%) transcripts to Cyber Cell</div>
+                            </div>
+                            <button
+                                onClick={() => toggle('reportToPolice')}
+                                className={`w-12 h-6 rounded-full transition-colors relative ${config.reportToPolice ? 'bg-green-600' : 'bg-slate-700'}`}
+                            >
+                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${config.reportToPolice ? 'left-7' : 'left-1'}`} />
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Notifications */}
-                <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-2xl p-6">
-                    <div className="flex items-center gap-3 mb-6">
-                        <div className="p-2 bg-yellow-500/20 rounded-lg text-yellow-400">
-                            <Bell size={24} />
-                        </div>
-                        <h2 className="text-xl font-bold">Alert Config</h2>
-                    </div>
+                {/* Section 2: Server */}
+                <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                        <Server className="text-green-400" size={20} />
+                        Backend Status
+                    </h2>
 
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <span className="text-slate-300">Push Notifications</span>
-                            <input type="checkbox" checked={notifications} onChange={() => setNotifications(!notifications)} className="accent-yellow-500 w-4 h-4" />
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="p-4 bg-slate-950/50 rounded-xl">
+                            <div className="text-sm text-slate-500">API Endpoint</div>
+                            <div className="font-mono text-green-400">http://localhost:8000</div>
                         </div>
-                        <div className="flex items-center justify-between">
-                            <span className="text-slate-300">Email Reports</span>
-                            <input type="checkbox" checked className="accent-yellow-500 w-4 h-4" />
+                        <div className="p-4 bg-slate-950/50 rounded-xl">
+                            <div className="text-sm text-slate-500">WebSocket Node</div>
+                            <div className="font-mono text-green-400">ws://localhost:8000/ws/monitor</div>
                         </div>
-                        <div className="flex items-center justify-between">
-                            <span className="text-slate-300">SMS Alerts to Trusted</span>
-                            <input type="checkbox" checked className="accent-yellow-500 w-4 h-4" />
+                        <div className="p-4 bg-slate-950/50 rounded-xl">
+                            <div className="text-sm text-slate-500">Database Connection</div>
+                            <div className="font-mono text-green-400">Supabase (Connected)</div>
                         </div>
                     </div>
                 </div>
-
-            </div>
-
-            <div className="mt-8 flex justify-end">
-                <button className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl font-bold flex items-center gap-2 shadow-lg shadow-cyan-500/20 transition-all">
-                    <Save size={18} /> Save Changes
-                </button>
             </div>
         </div>
     );
-}
+};
+
+export default Settings;

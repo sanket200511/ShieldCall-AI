@@ -1,69 +1,74 @@
-import React, { useEffect, useState } from 'react';
-import { AlertTriangle, Clock, MoreVertical, Shield } from 'lucide-react';
-import { API_BASE_URL } from '../config';
+import React, { useState, useEffect } from 'react';
+import { LiveFeed } from '../components/LiveFeed';
+import { ShieldAlert, Activity } from 'lucide-react';
 
-export default function LiveThreats() {
-    const [data, setData] = useState([]);
+const LiveThreats = () => {
+    const [alerts, setAlerts] = useState([]);
+    const [stats, setStats] = useState({ active: 0, critical: 0 });
 
     useEffect(() => {
-        fetch(`${API_BASE_URL}/threats`)
-            .then(res => res.json())
-            .then(setData)
-            .catch(err => console.error(err));
+        // Shared WebSocket connection for real-time updates
+        const ws = new WebSocket('ws://localhost:8000/ws/monitor');
+
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === 'NEW_THREAT') {
+                const newAlert = {
+                    id: Date.now(),
+                    phone: data.phone,
+                    scam_type: data.scam_type,
+                    risk_score: data.risk_score,
+                    transcript_snippet: data.transcript_snippet,
+                    timestamp: new Date().toISOString()
+                };
+                setAlerts(prev => [newAlert, ...prev].slice(0, 50));
+                if (data.risk_score > 80) setStats(s => ({ ...s, critical: s.critical + 1 }));
+            }
+            if (data.type === 'DEVICE_LIST_UPDATE') {
+                setStats(s => ({ ...s, active: data.devices.length }));
+            }
+        };
+
+        return () => ws.close();
     }, []);
 
     return (
-        <div className="p-8 h-full flex flex-col gap-6">
-            <div className="flex justify-between items-center">
+        <div className="flex flex-col h-full p-6 gap-6">
+            <header className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-red-400 to-orange-400">Live Threat Matrix</h1>
-                    <p className="text-slate-400 mt-1">Database Records (Last 50 Events)</p>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
+                        Live Threat Matrix
+                    </h1>
+                    <p className="text-slate-400 mt-2">
+                        Real-time visualization of intercepted fraud attempts.
+                    </p>
                 </div>
-            </div>
+                <div className="flex gap-4">
+                    <div className="bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg text-center flex items-center gap-3">
+                        <Activity className="text-blue-400" size={20} />
+                        <div>
+                            <div className="text-xl font-bold text-white leading-none">{stats.active}</div>
+                            <div className="text-[10px] text-slate-500 uppercase font-bold">Active Nodes</div>
+                        </div>
+                    </div>
+                    <div className="bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg text-center flex items-center gap-3">
+                        <ShieldAlert className="text-red-500" size={20} />
+                        <div>
+                            <div className="text-xl font-bold text-white leading-none">{stats.critical}</div>
+                            <div className="text-[10px] text-slate-500 uppercase font-bold">Critical Threats</div>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-            <div className="bg-slate-900/50 backdrop-blur-xl border border-white/5 rounded-2xl overflow-hidden shadow-2xl overflow-y-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-white/5 text-slate-400 border-b border-white/5">
-                            <th className="p-4 uppercase text-xs">Time</th>
-                            <th className="p-4 uppercase text-xs">Caller ID</th>
-                            <th className="p-4 uppercase text-xs">Scam Type</th>
-                            <th className="p-4 uppercase text-xs">Risk</th>
-                            <th className="p-4 uppercase text-xs">Evidence</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                        {data.length === 0 ? (
-                            <tr>
-                                <td colSpan="5" className="p-8 text-center text-slate-500">
-                                    No active threats found in database. Waiting for input...
-                                </td>
-                            </tr>
-                        ) : (
-                            data.map((item, idx) => (
-                                <tr key={idx} className="hover:bg-white/5 transition-colors">
-                                    <td className="p-4 text-slate-400 text-sm">
-                                        {new Date(item.created_at).toLocaleTimeString()}
-                                    </td>
-                                    <td className="p-4 font-mono text-white">{item.phone_number}</td>
-                                    <td className="p-4">
-                                        <span className="px-2 py-1 rounded-md bg-slate-800 border border-white/5 text-xs text-cyan-300">
-                                            {item.scam_type}
-                                        </span>
-                                    </td>
-                                    <td className="p-4">
-                                        <span className={`font-bold ${item.risk_score > 70 ? 'text-red-400' : 'text-yellow-400'}`}>
-                                            {item.risk_score}%
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-xs text-slate-500 font-mono">
-                                        {item.transcript ? item.transcript.substring(0, 30) + '...' : '-'}
-                                    </td>
-                                </tr>
-                            )))}
-                    </tbody>
-                </table>
+            <div className="flex-1 min-h-0 bg-slate-900/30 border border-slate-800 rounded-2xl overflow-hidden relative">
+                {/* Reusing LiveFeed component but in full container */}
+                <div className="absolute inset-0 p-4">
+                    <LiveFeed alerts={alerts} />
+                </div>
             </div>
         </div>
     );
-}
+};
+
+export default LiveThreats;

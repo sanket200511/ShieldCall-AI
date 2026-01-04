@@ -161,6 +161,101 @@ def analyze_text(req: TextAnalysisRequest):
         "patterns": list(set(detected_patterns))
     }
 
+# --- NEW: Blacklist Module ---
+blacklist_memory = {"+1234567890", "+9876543210"}  # Fallback memory store
+
+class BlacklistRequest(BaseModel):
+    phone: str
+    reason: str
+    reported_by: str
+
+@app.get("/blacklist/check")
+def check_blacklist(phone: str):
+    is_blacklisted = False
+    details = "Number is safe."
+    
+    # 1. Check Supabase
+    if supabase:
+        try:
+            res = supabase.table('blacklist').select("*").eq("phone_number", phone).execute()
+            if res.data and len(res.data) > 0:
+                is_blacklisted = True
+                details = f"Reported {len(res.data)} times. Flagged as Scam."
+        except:
+            pass # Fallback to memory
+            
+    # 2. Check Memory (Fallback/Demo)
+    if not is_blacklisted and phone in blacklist_memory:
+        is_blacklisted = True
+        details = "Flagged in local database."
+        
+    return {"phone": phone, "is_blacklisted": is_blacklisted, "details": details}
+
+@app.post("/blacklist/report")
+def report_blacklist(req: BlacklistRequest):
+    # 1. Add to Supabase
+    if supabase:
+        try:
+            supabase.table('blacklist').insert({
+                "phone_number": req.phone,
+                "reason": req.reason,
+                "reported_by": req.reported_by,
+                "created_at": datetime.datetime.now().isoformat()
+            }).execute()
+        except Exception as e:
+            print(f"Supabase Error: {e}")
+            
+    # 2. Add to Memory
+    blacklist_memory.add(req.phone)
+    
+    # 3. Notify Connected Clients (Live Update)
+    # We can broadcast a 'NEW_BLACKLIST_REPORT' event if needed
+    
+    return {"status": "success", "message": f"Reported {req.phone} to global blacklist."}
+
+@app.get("/blacklist/list")
+def list_blacklist():
+    # 1. Supabase
+    if supabase:
+        try:
+            res = supabase.table('blacklist').select("*").order("created_at", desc=True).limit(50).execute()
+            return res.data
+        except: pass
+        
+    # 2. Memory Fallback
+    # convert set to list of objects
+    return [{"phone_number": p, "reason": "Local Block", "reported_by": "System", "created_at": datetime.datetime.now().isoformat()} for p in blacklist_memory]
+
+@app.get("/devices")
+def get_devices():
+    return list(manager.device_map.values())
+
+@app.get("/stats")
+def get_stats():
+    scams = 0
+    blocked = 0
+    protected = len(manager.device_map) # + some base count if desired
+    
+    if supabase:
+        try:
+            # Note: count='exact', head=True is efficient way to get count without fetching data
+            # But supabase-py syntax varies. Using simple select for now or hardcoded simulation if needed.
+            # Assuming small scale for demo.
+            r1 = supabase.table('reports').select("id", count='exact').execute()
+            r2 = supabase.table('blacklist').select("id", count='exact').execute()
+            
+            scams = r1.count if r1.count is not None else len(r1.data)
+            blocked = r2.count if r2.count is not None else len(r2.data)
+        except:
+            scams = 12 # Mock fallback
+            blocked = len(blacklist_memory)
+
+    return {
+        "scams": scams,
+        "protected": max(protected, 1), # At least 1 if empty
+        "blocked": blocked
+    }
+
 # --- Existing Endpoints (Stats, WS, etc) ---
 # ... (Keeping previous WebSocket logic intact)
 @app.websocket("/ws/monitor")

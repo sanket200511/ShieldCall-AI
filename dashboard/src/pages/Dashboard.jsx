@@ -6,12 +6,18 @@ import { Activity, Shield, Users, Database } from 'lucide-react';
 export default function Dashboard() {
     const [alerts, setAlerts] = useState([]);
     const [globalRisk, setGlobalRisk] = useState(24);
-    const [activeNodes, setActiveNodes] = useState(1);
-    const [stats, setStats] = useState({ scams: 12, protected: 1240, blocked: 450 });
+    const [activeNodes, setActiveNodes] = useState(0);
+    const [stats, setStats] = useState({ scams: 0, protected: 0, blocked: 0 });
 
     useEffect(() => {
+        // Fetch real stats
+        fetch('http://localhost:8000/stats')
+            .then(res => res.json())
+            .then(data => setStats(data))
+            .catch(err => console.error("Stats API Error", err));
+
         // Connect to Real WebSocket
-        const ws = new WebSocket('ws://localhost:8001/ws/monitor');
+        const ws = new WebSocket('ws://localhost:8000/ws/monitor');
 
         ws.onopen = () => {
             console.log("Connected to ShieldCall Neural Core");
