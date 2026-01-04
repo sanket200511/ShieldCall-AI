@@ -82,7 +82,7 @@ class NotificationMonitorService : NotificationListenerService() {
             val name = "Analyzer Alerts"
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(channelId, name, importance)
-            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
         }
 
@@ -94,9 +94,9 @@ class NotificationMonitorService : NotificationListenerService() {
             .setAutoCancel(true)
             .build()
             
-        // Permission Check for Android 13+
+        // Explicit Permission Check for Android 13+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+             if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                  Log.e("ShieldCall", "Missing POST_NOTIFICATIONS permission")
                  return
              }

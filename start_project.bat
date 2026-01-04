@@ -3,8 +3,8 @@ echo ==========================================
 echo    SHIELDCALL AI - NETWORK MODE
 echo ==========================================
 
-echo [1/2] Starting Backend (0.0.0.0:8001)...
-start "ShieldCall Brain" cmd /k "cd backend && uvicorn main:app --port 8001 --host 0.0.0.0"
+echo [1/2] Starting Backend (0.0.0.0:8000)...
+start "ShieldCall Brain" cmd /k "cd backend && uvicorn main:app --port 8000 --host 0.0.0.0"
 
 echo [2/2] Starting Dashboard (0.0.0.0)...
 start "ShieldCall UI" cmd /k "cd dashboard && npm run dev -- --host"

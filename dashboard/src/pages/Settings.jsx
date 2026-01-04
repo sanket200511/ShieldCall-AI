@@ -44,7 +44,7 @@ const Settings = () => {
                         <div className="flex items-center justify-between p-4 bg-slate-950/50 rounded-xl">
                             <div>
                                 <div className="font-bold text-white">Auto-Report to Authorities</div>
-                                <div className="text-sm text-slate-500">Automatically forward high-confidence (>90%) transcripts to Cyber Cell</div>
+                                <div className="text-sm text-slate-500">Automatically forward high-confidence (&gt;90%) transcripts to Cyber Cell</div>
                             </div>
                             <button
                                 onClick={() => toggle('reportToPolice')}

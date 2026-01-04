@@ -1,6 +1,6 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 import json
@@ -62,7 +62,8 @@ class ConnectionManager:
         if websocket in self.device_map: del self.device_map[websocket]
 
     async def broadcast(self, message: Dict):
-        for connection in self.active_connections:
+        # Iterate over a COPY of the list to allow safe removal during iteration
+        for connection in list(self.active_connections):
             try: await connection.send_json(message)
             except: self.disconnect(connection)
 
@@ -128,6 +129,19 @@ async def generate_report(req: ReportRequest):
     
     return FileResponse(filename, filename="CyberCrime_Complaint.pdf")
 
+@app.get("/report_mobile_landing")
+async def report_mobile_landing(request: Request):
+    """
+    Redirects mobile users to the Web Dashboard Report Page by guessing the host IP.
+    Assumes Frontend is running on port 5173.
+    """
+    host = request.url.hostname
+    if not host or host == "0.0.0.0":
+        host = "localhost"
+    
+    # Redirect to the frontend Report page
+    return RedirectResponse(url=f"http://{host}:5173/report")
+
 # --- NEW: Text Analysis ---
 @app.post("/analyze/text")
 def analyze_text(req: TextAnalysisRequest):
@@ -163,7 +177,7 @@ def analyze_text(req: TextAnalysisRequest):
 
 # --- NEW: Blacklist Module ---
 blacklist_memory = {
-    "+12025550123", "+919876543210", "+442079460123", "+918888888888", "+1555010999"
+    "+919876543210", "+919988776655", "+918888888888", "+917777766666", "+919123456789"
 }
 
 class BlacklistRequest(BaseModel):
@@ -258,24 +272,45 @@ def get_stats():
         "blocked": blocked
     }
 
+# --- NEW: Threat History Module ---
+threat_memory = [] # Fallback storage
+
+@app.get("/threats/recent")
+def get_recent_threats():
+    # 1. Try Supabase
+    if supabase:
+        try:
+            res = supabase.table('reports').select("*").order("created_at", desc=True).limit(50).execute()
+            # Map proper keys if needed, assuming direct mapping for now
+            return [{"id": r['id'], "phone": r['phone_number'], "scam_type": r['scam_type'], "risk_score": r['risk_score'], "transcript_snippet": r['transcript'], "timestamp": r['created_at']} for r in res.data]
+        except: pass
+        
+    # 2. Fallback Memory
+    return sorted(threat_memory, key=lambda x: x['timestamp'], reverse=True)[:50]
+
 # --- Existing Endpoints (Stats, WS, etc) ---
 # ... (Keeping previous WebSocket logic intact)
 @app.websocket("/ws/monitor")
 async def websocket_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
+    print(f"🔌 WS Connected: {websocket.client}")
     try:
         while True:
             data = await websocket.receive_text()
+            # print(f"📩 WS Received: {data[:50]}...") # Log first 50 chars
             message = json.loads(data)
             
             if message.get('type') == 'REGISTER_DEVICE':
+                print(f"📱 Device Registered: {message.get('device_name')} ({message.get('device_id')})")
                 manager.device_map[websocket] = {
                     "id": message.get('device_id'),
                     "name": message.get('device_name', 'Unknown Android'),
                     "battery": message.get('battery', 100),
+                    "threats_blocked": message.get('threats_blocked', 0),
                     "status": "ONLINE",
                     "last_seen": datetime.datetime.now().isoformat()
                 }
+                print(f"📊 Current Devices: {list(manager.device_map.values())}")
                 await manager.broadcast({"type": "DEVICE_LIST_UPDATE", "devices": list(manager.device_map.values())})
 
             elif message.get('type') == 'AUDIO_CHUNK':
@@ -305,6 +340,9 @@ async def websocket_endpoint(websocket: WebSocket):
                         "timestamp": datetime.datetime.now().isoformat()
                     }
                     await manager.broadcast(payload)
+                    
+                    # Store in Memory (Fallback)
+                    threat_memory.append(payload)
                     
                     if supabase:
                         try:

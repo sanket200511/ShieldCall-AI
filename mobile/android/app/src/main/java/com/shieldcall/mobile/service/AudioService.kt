@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
+import android.os.PowerManager
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
@@ -41,16 +42,30 @@ class AudioService : Service() {
     private var isListening = false
     private val handler = Handler(Looper.getMainLooper())
 
+    private var wakeLock: PowerManager.WakeLock? = null
+
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
+        // Acquire WakeLock to keep CPU running during listening
+        val powerManager = getSystemService(POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ShieldCall::AudioServiceWakelock")
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val notification = createNotification("Shield Active", "Monitoring conversation for threats...")
+        val notification = createNotification("Shield Active", "Continuous protection enabled.")
         startForeground(1, notification)
+        
+        try {
+            if (wakeLock?.isHeld == false) {
+                 wakeLock?.acquire(10*60*1000L /*10 minutes*/)
+            }
+        } catch (e: SecurityException) {
+            Log.e("AudioService", "WakeLock permission missing: ${e.message}")
+        }
 
         connectWebSocket()
+        sendBroadcastUpdate("Initializing AI...")
         // Initialize Speech Recognition on Main Thread
         handler.post { setupSpeechRecognition() }
 
@@ -63,29 +78,47 @@ class AudioService : Service() {
             recognitionIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
-                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 1)
-                // Try to keep it running
+                putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
+                
+                // --- Aggressive Continuous Listening Extras ---
+                // Standard Constants
+                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 60000L)
+                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 60000L)
+                putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 60000L)
+                
+                // Legacy String Keys (Critical for some devices)
+                putExtra("android.speech.extras.SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS", 60000L)
+                putExtra("android.speech.extras.SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS", 60000L)
+                
+                // Undocumented Google Extras
                 putExtra("android.speech.extra.DICTATION_MODE", true)
+                putExtra("android.speech.extra.PARTIAL_RESULTS", true)
             }
 
             speechRecognizer?.setRecognitionListener(object : RecognitionListener {
-                override fun onReadyForSpeech(params: Bundle?) {}
-                override fun onBeginningOfSpeech() {}
+                override fun onReadyForSpeech(params: Bundle?) {
+                     sendBroadcastUpdate("Listening...")
+                }
+                override fun onBeginningOfSpeech() {
+                     sendBroadcastUpdate("Detecting Speech...")
+                }
                 override fun onRmsChanged(rmsdB: Float) {}
                 override fun onBufferReceived(buffer: ByteArray?) {}
                 
                 override fun onEndOfSpeech() {
-                    // Restart listening to make it continuous
-                    if (isListening) {
-                        speechRecognizer?.startListening(recognitionIntent)
-                    }
+                     sendBroadcastUpdate("Processing...")
                 }
 
                 override fun onError(error: Int) {
                     if (isListening) {
-                        // Debounce restart to prevent "on/off" loop
-                        val delay = if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) 500L else 2000L
-                        handler.postDelayed({ safeStartListening() }, delay)
+                         // 7 = No Match, 6 = Timeout.
+                        val isIgnorable = (error == 7 || error == 6)
+                        val errorMessage = if (isIgnorable) "Listening..." else "Error: $error"
+                        sendBroadcastUpdate(errorMessage)
+                        
+                        val delay = if (isIgnorable) 100L else 1000L 
+                        Log.e("AudioService", "Error: $error. Restarting in ${delay}ms")
+                        handler.postDelayed({ safeStartListening() }, delay) 
                     }
                 }
 
@@ -94,19 +127,23 @@ class AudioService : Service() {
                     if (!matches.isNullOrEmpty()) {
                         sendTranscript(matches[0])
                     }
-                    if (isListening) safeStartListening()
+                    // Success! Restart quickly to catch next sentence
+                    if (isListening) handler.postDelayed({ safeStartListening() }, 50)
                 }
 
                 override fun onPartialResults(partialResults: Bundle?) {
-                    val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
-                    if (!matches.isNullOrEmpty()) {
-                        sendTranscript(matches[0]) // Stream partials for faster detection
-                    }
+                     val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                     if (!matches.isNullOrEmpty()) {
+                         // Broadcast partials so user sees text appearing LIVE
+                         val intent = Intent("com.shieldcall.mobile.TRANSCRIPT")
+                         intent.putExtra("text", matches[0] + "...") // Add dots to indicate live
+                         sendBroadcast(intent)
+                     }
                 }
 
                 override fun onEvent(eventType: Int, params: Bundle?) {}
             })
-
+            
             isListening = true
             safeStartListening()
         } else {
@@ -117,14 +154,52 @@ class AudioService : Service() {
     private fun safeStartListening() {
         if (!isListening) return
         try {
-            speechRecognizer?.startListening(recognitionIntent)
+            // 1. Force state clear (Cancel is faster than destroy)
+            speechRecognizer?.cancel()
+            
+            // 2. Start immediately. The delay in onError/onResults is sufficient.
+            // Extra delay here causes the "double beep" effect.
+            try {
+                speechRecognizer?.startListening(recognitionIntent)
+            } catch (e: Exception) {
+                 Log.e("AudioService", "Retry Start failed: ${e.message}")
+                 // Only if start fails, we wait and retry
+                 handler.postDelayed({ setupSpeechRecognition() }, 1000)
+            }
+            
         } catch (e: Exception) {
-            // Service might be busy or unavailable
-            Log.e("AudioService", "Start listening failed: ${e.message}")
+            Log.e("AudioService", "Start listening loop error: ${e.message}")
+        }
+    }
+
+    private var threatsBlocked = 0
+    private val heartbeatHandler = Handler(Looper.getMainLooper())
+    private val heartbeatRunnable = object : Runnable {
+        override fun run() {
+            if (webSocket != null) {
+                try {
+                    val bm = getSystemService(BATTERY_SERVICE) as android.os.BatteryManager
+                    val batLevel = bm.getIntProperty(android.os.BatteryManager.BATTERY_PROPERTY_CAPACITY)
+                    val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
+                    
+                    val json = JSONObject().apply {
+                        put("type", "REGISTER_DEVICE")
+                        put("device_id", android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID))
+                        put("device_name", deviceName)
+                        put("battery", batLevel)
+                        put("threats_blocked", threatsBlocked)
+                    }
+                    webSocket?.send(json.toString())
+                } catch (e: Exception) {
+                    Log.e("AudioService", "Heartbeat failed: ${e.message}")
+                }
+            }
+            heartbeatHandler.postDelayed(this, 3000) // Send every 3 seconds
         }
     }
 
     private fun connectWebSocket() {
+        // FIX: Reverting to 'server_url' because that is what the Settings Dialog saves to
         val baseUrl = getSharedPreferences("ShieldCallPrefs", Context.MODE_PRIVATE).getString("server_url", "http://10.0.2.2:8000") ?: "http://10.0.2.2:8000"
         
         // Convert HTTP/S to WS/S
@@ -135,16 +210,15 @@ class AudioService : Service() {
         }
 
         val request = Request.Builder().url("$wsUrl/ws/monitor").build()
+        
+        // Cancel logic if re-connecting
+        // webSocket?.close(1000, "Reconnecting") 
+        
         webSocket = client.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
                 Log.d("AudioService", "WebSocket Connected to $wsUrl")
-                val deviceName = "${Build.MANUFACTURER} ${Build.MODEL}"
-                val json = JSONObject().apply {
-                    put("type", "REGISTER_DEVICE")
-                    put("device_id", android.provider.Settings.Secure.getString(contentResolver, android.provider.Settings.Secure.ANDROID_ID))
-                    put("device_name", deviceName)
-                }
-                webSocket.send(json.toString())
+                // Start Heartbeat
+                heartbeatHandler.post(heartbeatRunnable)
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
@@ -153,7 +227,8 @@ class AudioService : Service() {
                     if (json.optString("type") == "NEW_THREAT") {
                         val risk = json.optInt("risk_score", 0)
                         val type = json.optString("scam_type", "Unknown")
-                        if (risk > 70) { // Server confirms threat
+                        if (risk > 70) {
+                            threatsBlocked++
                             showThreatAlert(type, risk)
                         }
                     }
@@ -164,18 +239,48 @@ class AudioService : Service() {
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 Log.e("AudioService", "WebSocket Failure: ${t.message}")
-                // Retry?
+                // Retry logic could go here, but client auto-reconnects on next activity launch usually.
+                // For service, we might want a delayed retry.
+            }
+            
+            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+                 heartbeatHandler.removeCallbacks(heartbeatRunnable)
+            }
+             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                 heartbeatHandler.removeCallbacks(heartbeatRunnable)
             }
         })
     }
 
+    private fun sendBroadcastUpdate(status: String) {
+        val intent = Intent("com.shieldcall.mobile.TRANSCRIPT")
+        intent.putExtra("text", status)
+        sendBroadcast(intent)
+    }
+
     private fun sendTranscript(text: String) {
+        val lower = text.lowercase()
+        
+        // 0. Broadcast to UI
+        sendBroadcastUpdate(text)
+
+        // 1. Send to Server
         val json = JSONObject().apply {
             put("type", "AUDIO_CHUNK")
             put("text", text)
         }
         webSocket?.send(json.toString())
         Log.d("AudioService", "Sent: $text")
+
+        // 2. Client-Side fallback
+        if (lower.contains("bank") && (lower.contains("otp") || lower.contains("password"))) {
+             threatsBlocked++
+             showThreatAlert("Bank Fraud (Offline)", 95)
+        } 
+        else if (lower.contains("lottery") || lower.contains("prize") || lower.contains("winner")) {
+             threatsBlocked++
+             showThreatAlert("Lottery Scam (Offline)", 88)
+        }
     }
 
     @SuppressLint("MissingPermission")
@@ -217,10 +322,12 @@ class AudioService : Service() {
 
     override fun onDestroy() {
         isListening = false
+        if (wakeLock?.isHeld == true) wakeLock?.release()
+        
         handler.post {
-            speechRecognizer?.stopListening()
             speechRecognizer?.destroy()
         }
+        heartbeatHandler.removeCallbacks(heartbeatRunnable)
         webSocket?.close(1000, "Service Destroyed")
         super.onDestroy()
     }

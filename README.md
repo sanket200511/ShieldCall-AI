@@ -52,10 +52,13 @@
 1. Open `/mobile/android` in Android Studio.
 2. Build APK via `Build > Build Bundle(s) / APK(s) > Build APK`.
 3. Install on physical device.
-4. **CRITICAL**: Long Press "Live Shield" -> Enter PC's IP Address (e.g., `192.168.1.X`).
-4. Grant Permissions (Mic, Notifications).
+4. **Configuration**: Tap Settings Icon -> Enter Backend URL (e.g., `https://your-app.railway.app` or `http://192.168.1.5:8000`).
+5. Grant Permissions (Mic, Notifications).
 
 ## 📸 Usage
-1. **Connect**: Ensure Phone and PC are on the same WiFi.
+1. **Connect**: Ensure Dashboard and Mobile App are pointing to the same Backend.
 2. **Activate**: Tap "Shield" on Phone. Speak keywords like "OTP" or "Bank".
 3. **Monitor**: Watch the "Live Threat Matrix" on the Web Dashboard light up physically.
+
+## 📄 Deployment
+See the [Deployment Guide](deployment_guide.md) for step-by-step instructions on hosting this project on Railway (Backend) and Vercel (Frontend).

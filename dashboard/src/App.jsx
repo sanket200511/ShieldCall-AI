@@ -21,6 +21,9 @@ function Layout() {
                     <Route path="/devices" element={<DeviceManager />} />
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/alerts" element={<LiveThreats />} />
+                    <Route path="/mobile" element={<MobileClient />} />
+                    <Route path="/mobile-client" element={<MobileClient />} />
+                    <Route path="/mobile_client" element={<MobileClient />} />
                 </Routes>
             </div>
         </div>
@@ -33,6 +36,8 @@ function App() {
             <Routes>
                 {/* Mobile Client has its own dedicated layout (full screen) */}
                 <Route path="/mobile-client" element={<MobileClient />} />
+                <Route path="/mobile" element={<MobileClient />} />
+                <Route path="/mobile_client" element={<MobileClient />} />
 
                 {/* Admin Dashboard Routes */}
                 <Route path="/*" element={<Layout />} />

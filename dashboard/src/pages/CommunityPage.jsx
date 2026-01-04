@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldAlert, Search, ThumbsUp, MessageSquare } from 'lucide-react';
+import { ShieldAlert, Search, ThumbsUp, MessageSquare, Plus, Shield, AlertTriangle } from 'lucide-react';
 import { API_BASE_URL } from '../config';
 
 const CommunityPage = () => {
@@ -19,7 +19,15 @@ const CommunityPage = () => {
                     reporter: d.reported_by || 'Anon',
                     time: new Date(d.created_at).toLocaleDateString()
                 }));
-                setReports(mapped);
+
+                if (mapped.length > 0) setReports(mapped);
+                else setReports([
+                    { id: 101, phone: '+91 91122 33445', reason: 'Tech Support Scam', reporter: 'System', time: 'Today' },
+                    { id: 102, phone: '+91 99887 76655', reason: 'KYC Fraud SMS', reporter: 'Rahul_User', time: 'Yesterday' },
+                    { id: 103, phone: '+91 88990 01122', reason: 'Part-time Job Scam', reporter: 'Sarah_Smith', time: '2 days ago' },
+                    { id: 104, phone: '+91 78901 23456', reason: 'Amazon Refund Fraud', reporter: 'Mike_D', time: '3 days ago' },
+                    { id: 105, phone: '+91 77777 66666', reason: 'WhatsApp Video Call', reporter: 'Priya_K', time: '4 days ago' }
+                ]);
             })
             .catch(err => console.error("Blacklist Fetch Error", err));
     }, []);

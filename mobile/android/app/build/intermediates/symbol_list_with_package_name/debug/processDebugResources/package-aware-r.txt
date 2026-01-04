@@ -3559,6 +3559,7 @@ id transition_transform
 id triangle
 id tvProtectionStatus
 id tvShieldStatus
+id tvTranscript
 id unchecked
 id uniform
 id unlabeled
@@ -5216,3 +5217,4 @@ styleable ViewTransition android_id SharedValue SharedValueId clearsTag duration
 styleable include constraintSet
 xml backup_rules
 xml data_extraction_rules
+xml network_security_config

@@ -2,6 +2,7 @@ package com.shieldcall.mobile
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -57,10 +58,11 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<android.view.View>(R.id.cardAction).setOnClickListener {
             // Deep link to Web Reporting Page
-            val ip = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_ip", "10.0.2.2") ?: "10.0.2.2"
-            val url = "http://$ip:5173/report" 
+            // Deep link to Web Reporting Page. Extract IP from full URL if needed, or just use base.
+            val fullUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://10.0.2.2:8000") ?: "http://10.0.2.2:8000"
+            // Start Activity needs a clean URL. For now, just open the report page.
             val intent = Intent(Intent.ACTION_VIEW)
-            intent.data = Uri.parse(url)
+            intent.data = Uri.parse("$fullUrl/report_mobile_landing") // Assuming your backend has a redirect or frontend handles this
             startActivity(intent)
         }
 
@@ -85,26 +87,61 @@ class MainActivity : AppCompatActivity() {
         }, 2000)
     }
 
+    private val transcriptReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: android.content.Context?, intent: Intent?) {
+            val text = intent?.getStringExtra("text") ?: ""
+            findViewById<TextView>(R.id.tvTranscript).text = "\"$text\""
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val intentFilter = android.content.IntentFilter("com.shieldcall.mobile.TRANSCRIPT")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(transcriptReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(transcriptReceiver, intentFilter)
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        try { unregisterReceiver(transcriptReceiver) } catch (e: Exception) {}
+    }
+
     private fun showServerConfigDialog() {
         val currentUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://10.0.2.2:8000")
         val input = EditText(this)
         input.setText(currentUrl)
-        input.hint = "https://api.yourbackend.com"
+        input.hint = "http://192.168.1.X:8000"
+        
+        val container = android.widget.LinearLayout(this)
+        container.orientation = android.widget.LinearLayout.VERTICAL
+        container.setPadding(50, 40, 50, 10)
+        
+        val tip = TextView(this)
+        tip.text = "ℹ️ Use your Computer's IP + Port 8000.\nExample: http://192.168.1.5:8000\nDo NOT use localhost or 127.0.0.1 on device."
+        tip.textSize = 12f
+        tip.setTextColor(android.graphics.Color.GRAY)
+        tip.setPadding(0, 0, 0, 20)
+        
+        container.addView(tip)
+        container.addView(input)
 
         AlertDialog.Builder(this)
             .setTitle("Server URL Configuration")
-            .setMessage("Enter Full Backend URL (include http/https):")
-            .setView(input)
+            .setView(container)
             .setPositiveButton("Save") { _, _ ->
                 var newUrl = input.text.toString().trim()
                 if (newUrl.endsWith("/")) newUrl = newUrl.dropLast(1)
                 
                 getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).edit().putString("server_url", newUrl).apply()
-                Toast.makeText(this, "URL Saved: $newUrl", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "URL Saved. Restart Shield to Apply.", Toast.LENGTH_SHORT).show()
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
+
 
     private fun showBlacklistCheckDialog() {
         val input = EditText(this)

@@ -35,3 +35,13 @@ This panel updates in real-time.
 ## 5. Troubleshooting
 *   **"Disconnected" Status**: Check if the Backend server window is open. The Dashboard needs the backend to receive live updates.
 *   **No Alerts?**: The system uses mock data for the demo. Wait a few seconds, or refresh the page to see new "simulated" attacks.
+
+## 6. Android 13+ Installation Guide (Important!) ⚠️
+If you see a **"Restricted Setting"** popup when trying to enable Notification Access:
+1.  This is a security feature for apps installed outside the Play Store.
+2.  **To Fix It**:
+    *   Open your phone's **Settings > Apps > ShieldCall AI**.
+    *   Tap the **three dots** (⋮) in the top-right corner.
+    *   Select **"Allow restricted settings"**.
+    *   Verify your identity (fingerprint/PIN).
+3.  Go back to the ShieldCall app and try enabling the permission again. It will now work!

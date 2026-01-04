@@ -1,10 +1,14 @@
 // Centralized Configuration for API URLs
 
-// Getting the Base URL from Environment (Vite) or consistent default
 const getBaseUrl = () => {
     // In Vite, env vars are accessed via import.meta.env
-    // VITE_API_URL should be set in production to your backend (e.g., https://my-backend.railway.app)
-    let url = import.meta.env.VITE_API_URL || "http://localhost:8000";
+    // If VITE_API_URL is set, use it. Otherwise, assume backend is on the same host at port 8000.
+    // This allows mobile devices to connect via IP automatically (e.g. 192.168.1.5:8000)
+    let url = import.meta.env.VITE_API_URL;
+
+    if (!url) {
+        url = `http://${window.location.hostname}:8000`;
+    }
 
     // Remove trailing slash if present
     if (url.endsWith("/")) url = url.slice(0, -1);

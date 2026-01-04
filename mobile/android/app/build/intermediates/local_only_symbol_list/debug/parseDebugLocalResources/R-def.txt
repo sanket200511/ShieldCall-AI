@@ -12,8 +12,10 @@ id cardLiveShield
 id cardNetwork
 id tvProtectionStatus
 id tvShieldStatus
+id tvTranscript
 layout activity_main
 mipmap ic_launcher
 mipmap ic_launcher_round
 xml backup_rules
 xml data_extraction_rules
+xml network_security_config

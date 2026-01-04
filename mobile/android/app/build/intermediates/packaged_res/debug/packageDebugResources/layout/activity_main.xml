@@ -109,6 +109,19 @@
             </androidx.cardview.widget.CardView>
         </FrameLayout>
 
+        <!-- Live Transcript View -->
+        <TextView
+            android:id="@+id/tvTranscript"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:gravity="center"
+            android:text="Tap Shield to start listening..."
+            android:textColor="#64748B"
+            android:textSize="14sp"
+            android:fontFamily="monospace"
+            android:minLines="2" />
+
         <!-- Feature Grid -->
         <GridLayout
             android:layout_width="match_parent"

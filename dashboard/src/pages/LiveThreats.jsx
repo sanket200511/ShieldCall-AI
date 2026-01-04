@@ -1,14 +1,30 @@
-```javascript
+
 import React, { useState, useEffect } from 'react';
 import { LiveFeed } from '../components/LiveFeed';
-import { Shield, AlertOctagon, Terminal } from 'lucide-react';
-import { WS_BASE_URL } from '../config';
+import { Shield, AlertOctagon, Terminal, Activity, ShieldAlert } from 'lucide-react';
+import { WS_BASE_URL, API_BASE_URL } from '../config';
 
 const LiveThreats = () => {
     const [alerts, setAlerts] = useState([]);
     const [stats, setStats] = useState({ active: 0, critical: 0 });
 
     useEffect(() => {
+        // Fetch recent history on load
+        fetch(`${API_BASE_URL}/threats/recent`)
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    setAlerts(data);
+                    // Calculate initial stats
+                    const crit = data.filter(d => d.risk_score > 80).length;
+                    setStats(s => ({ ...s, critical: crit }));
+                } else {
+                    // Empty state or keep blank until live data comes in
+                    // Optional: Retain 1 demo item if totally empty for visual proof
+                }
+            })
+            .catch(e => console.error("Threat fetch error", e));
+
         // Shared WebSocket connection for real-time updates
         const ws = new WebSocket(WS_BASE_URL);
 

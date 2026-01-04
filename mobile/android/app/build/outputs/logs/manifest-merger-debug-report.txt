@@ -1,9 +1,9 @@
 -- Merging decision tree log ---
 manifest
-ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:2:1-51:12
-INJECTED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:2:1-51:12
-INJECTED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:2:1-51:12
-INJECTED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:2:1-51:12
+ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:2:1-53:12
+INJECTED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:2:1-53:12
+INJECTED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:2:1-53:12
+INJECTED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:2:1-53:12
 MERGED from [com.google.android.material:material:1.11.0] C:\Users\ASUS\.gradle\caches\8.13\transforms\1962592106a2feec42036b6c0a9fcb03\transformed\material-1.11.0\AndroidManifest.xml:17:1-24:12
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] C:\Users\ASUS\.gradle\caches\8.13\transforms\046e35911a751810304999d0fae945fc\transformed\constraintlayout-2.1.4\AndroidManifest.xml:2:1-11:12
 MERGED from [androidx.appcompat:appcompat-resources:1.6.1] C:\Users\ASUS\.gradle\caches\8.13\transforms\a305c0579de33b3c1275bad4e5e8acf5\transformed\jetified-appcompat-resources-1.6.1\AndroidManifest.xml:17:1-22:12
@@ -71,15 +71,19 @@ uses-permission#android.permission.FOREGROUND_SERVICE_MICROPHONE
 ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:8:5-88
 	android:name
 		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:8:22-85
-uses-permission#android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
-ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:11:5-12:47
-	tools:ignore
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:12:9-44
+uses-permission#android.permission.WAKE_LOCK
+ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:9:5-68
 	android:name
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:11:22-90
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:9:22-65
+uses-permission#android.permission.BIND_NOTIFICATION_LISTENER_SERVICE
+ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:12:5-13:47
+	tools:ignore
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:13:9-44
+	android:name
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:12:22-90
 application
-ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:14:5-49:19
-INJECTED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:14:5-49:19
+ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:15:5-51:19
+INJECTED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:15:5-51:19
 MERGED from [com.google.android.material:material:1.11.0] C:\Users\ASUS\.gradle\caches\8.13\transforms\1962592106a2feec42036b6c0a9fcb03\transformed\material-1.11.0\AndroidManifest.xml:22:5-20
 MERGED from [com.google.android.material:material:1.11.0] C:\Users\ASUS\.gradle\caches\8.13\transforms\1962592106a2feec42036b6c0a9fcb03\transformed\material-1.11.0\AndroidManifest.xml:22:5-20
 MERGED from [androidx.constraintlayout:constraintlayout:2.1.4] C:\Users\ASUS\.gradle\caches\8.13\transforms\046e35911a751810304999d0fae945fc\transformed\constraintlayout-2.1.4\AndroidManifest.xml:9:5-20
@@ -101,65 +105,67 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\ASUS\.gradle\cache
 	android:appComponentFactory
 		ADDED from [androidx.core:core:1.12.0] C:\Users\ASUS\.gradle\caches\8.13\transforms\a12b4ed474a2ae7e9a0086c773340962\transformed\core-1.12.0\AndroidManifest.xml:28:18-86
 	android:supportsRtl
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:21:9-35
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:22:9-35
 	android:label
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:19:9-38
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:20:9-38
 	android:fullBackupContent
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:17:9-54
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:18:9-54
 	android:roundIcon
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:20:9-54
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:21:9-54
 	tools:targetApi
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:23:9-29
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:25:9-29
 	android:icon
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:18:9-43
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:19:9-43
 	android:allowBackup
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:15:9-35
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:16:9-35
 	android:theme
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:22:9-77
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:23:9-77
+	android:networkSecurityConfig
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:24:9-69
 	android:dataExtractionRules
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:16:9-65
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:17:9-65
 activity#com.shieldcall.mobile.MainActivity
-ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:25:9-32:20
+ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:27:9-34:20
 	android:exported
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:27:13-36
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:29:13-36
 	android:name
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:26:13-41
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:28:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:28:13-31:29
+ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:30:13-33:29
 action#android.intent.action.MAIN
-ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:29:17-69
+ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:31:17-69
 	android:name
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:29:25-66
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:31:25-66
 category#android.intent.category.LAUNCHER
-ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:30:17-77
+ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:32:17-77
 	android:name
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:30:27-74
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:32:27-74
 service#com.shieldcall.mobile.service.AudioService
-ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:34:9-38:40
+ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:36:9-40:40
 	android:enabled
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:37:13-35
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:39:13-35
 	android:exported
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:38:13-37
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:40:13-37
 	android:foregroundServiceType
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:36:13-55
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:38:13-55
 	android:name
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:35:13-49
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:37:13-49
 service#com.shieldcall.mobile.service.NotificationMonitorService
-ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:40:9-47:19
+ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:42:9-49:19
 	android:label
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:41:13-48
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:43:13-48
 	android:exported
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:43:13-36
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:45:13-36
 	android:permission
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:42:13-87
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:44:13-87
 	android:name
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:40:18-68
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:42:18-68
 intent-filter#action:name:android.service.notification.NotificationListenerService
-ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:44:13-46:29
+ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:46:13-48:29
 action#android.service.notification.NotificationListenerService
-ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:45:17-99
+ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:47:17-99
 	android:name
-		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:45:25-96
+		ADDED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml:47:25-96
 uses-sdk
 INJECTED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from C:\ShieldCall AI\mobile\android\app\src\main\AndroidManifest.xml
