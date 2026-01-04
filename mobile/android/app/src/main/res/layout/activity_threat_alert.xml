@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/alertContainer"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#DC2626"
+    android:clickable="true"
+    android:focusable="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <!-- Warning Icon -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚠️"
+            android:textSize="80sp"
+            android:layout_marginBottom="24dp"/>
+
+        <!-- Main Title -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SCAM DETECTED!"
+            android:textColor="#FFFFFF"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-black"
+            android:letterSpacing="0.05"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Scam Type -->
+        <TextView
+            android:id="@+id/tvScamType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Bank/KYC Fraud"
+            android:textColor="#FEE2E2"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="48dp"/>
+
+        <!-- Warning Message -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🚨 DO NOT SHARE ANY INFORMATION 🚨"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="END THE CALL IMMEDIATELY"
+            android:textColor="#FEE2E2"
+            android:textSize="14sp"
+            android:layout_marginBottom="48dp"/>
+
+        <!-- Dismiss hint -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TAP ANYWHERE TO DISMISS"
+            android:textColor="#FCA5A5"
+            android:textSize="12sp"
+            android:letterSpacing="0.2"
+            android:padding="16dp"
+            android:background="@drawable/dismiss_button_bg"/>
+
+    </LinearLayout>
+
+</FrameLayout>

@@ -21,6 +21,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.shieldcall.mobile.MainActivity
 import com.shieldcall.mobile.R
+import com.shieldcall.mobile.ThreatAlertActivity
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -96,28 +97,35 @@ class AudioService : Service() {
             }
 
             speechRecognizer?.setRecognitionListener(object : RecognitionListener {
+                // REMOVED: onReadyForSpeech and onBeginningOfSpeech broadcasts
+                // These were causing the "Listening..." text to overwrite transcripts
                 override fun onReadyForSpeech(params: Bundle?) {
-                     sendBroadcastUpdate("Listening...")
+                    // Only show "Listening..." if we have NO transcript yet
+                    if (lastTranscript.isEmpty()) {
+                        sendBroadcastUpdate("🎤 Listening...")
+                    }
                 }
                 override fun onBeginningOfSpeech() {
-                     sendBroadcastUpdate("Detecting Speech...")
+                    // User started speaking - do nothing, transcript will appear via partials/results
                 }
                 override fun onRmsChanged(rmsdB: Float) {}
                 override fun onBufferReceived(buffer: ByteArray?) {}
                 
                 override fun onEndOfSpeech() {
-                     sendBroadcastUpdate("Processing...")
+                    // Processing - but don't overwrite transcript, just log
+                    Log.d("AudioService", "End of speech detected")
                 }
 
                 override fun onError(error: Int) {
                     if (isListening) {
-                         // 7 = No Match, 6 = Timeout.
+                         // 7 = No Match, 6 = Timeout - these are normal during silence
                         val isIgnorable = (error == 7 || error == 6)
-                        val errorMessage = if (isIgnorable) "Listening..." else "Error: $error"
-                        sendBroadcastUpdate(errorMessage)
-                        
-                        val delay = if (isIgnorable) 100L else 1000L 
-                        Log.e("AudioService", "Error: $error. Restarting in ${delay}ms")
+                        if (!isIgnorable) {
+                            Log.e("AudioService", "Real error: $error")
+                            sendBroadcastUpdate("⚠️ Error: $error")
+                        }
+                        // Restart silently - don't touch UI
+                        val delay = if (isIgnorable) 50L else 1000L 
                         handler.postDelayed({ safeStartListening() }, delay) 
                     }
                 }
@@ -127,17 +135,15 @@ class AudioService : Service() {
                     if (!matches.isNullOrEmpty()) {
                         sendTranscript(matches[0])
                     }
-                    // Success! Restart quickly to catch next sentence
+                    // Restart to catch next sentence
                     if (isListening) handler.postDelayed({ safeStartListening() }, 50)
                 }
 
                 override fun onPartialResults(partialResults: Bundle?) {
                      val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                      if (!matches.isNullOrEmpty()) {
-                         // Broadcast partials so user sees text appearing LIVE
-                         val intent = Intent("com.shieldcall.mobile.TRANSCRIPT")
-                         intent.putExtra("text", matches[0] + "...") // Add dots to indicate live
-                         sendBroadcast(intent)
+                         // FIX: Use sendBroadcastUpdate which has setPackage()
+                         sendBroadcastUpdate(matches[0] + "...")
                      }
                 }
 
@@ -200,7 +206,7 @@ class AudioService : Service() {
 
     private fun connectWebSocket() {
         // FIX: Reverting to 'server_url' because that is what the Settings Dialog saves to
-        val baseUrl = getSharedPreferences("ShieldCallPrefs", Context.MODE_PRIVATE).getString("server_url", "http://10.0.2.2:8000") ?: "http://10.0.2.2:8000"
+        val baseUrl = getSharedPreferences("ShieldCallPrefs", Context.MODE_PRIVATE).getString("server_url", "http://192.168.1.100:8000") ?: "http://192.168.1.100:8000"
         
         // Convert HTTP/S to WS/S
         val wsUrl = when {
@@ -254,12 +260,17 @@ class AudioService : Service() {
 
     private fun sendBroadcastUpdate(status: String) {
         val intent = Intent("com.shieldcall.mobile.TRANSCRIPT")
+        intent.setPackage(packageName) // CRITICAL: Explicit package for Android 13+ compatibility
         intent.putExtra("text", status)
         sendBroadcast(intent)
+        Log.d("AudioService", "Broadcast sent: $status") // Debug log
     }
+
+    private var lastTranscript = ""
 
     private fun sendTranscript(text: String) {
         val lower = text.lowercase()
+        lastTranscript = text // Save for reference
         
         // 0. Broadcast to UI
         sendBroadcastUpdate(text)
@@ -272,49 +283,107 @@ class AudioService : Service() {
         webSocket?.send(json.toString())
         Log.d("AudioService", "Sent: $text")
 
-        // 2. Client-Side fallback
-        if (lower.contains("bank") && (lower.contains("otp") || lower.contains("password"))) {
-             threatsBlocked++
-             showThreatAlert("Bank Fraud (Offline)", 95)
-        } 
-        else if (lower.contains("lottery") || lower.contains("prize") || lower.contains("winner")) {
-             threatsBlocked++
-             showThreatAlert("Lottery Scam (Offline)", 88)
+        // 2. Client-Side Threat Detection (Matching PWA MobileClient keywords)
+        val isBankThreat = lower.contains("bank") && 
+                           (lower.contains("otp") || lower.contains("password") || lower.contains("account"))
+        
+        val isKycThreat = lower.contains("kyc") || lower.contains("verify") || lower.contains("aadhaar") ||
+                          lower.contains("pan card") || lower.contains("link")
+        
+        val isLotteryThreat = lower.contains("lottery") || lower.contains("prize") || 
+                              lower.contains("winner") || lower.contains("congratulations") ||
+                              lower.contains("lakh") || lower.contains("crore")
+        
+        val isLegalThreat = lower.contains("police") || lower.contains("arrest") || 
+                            lower.contains("customs") || lower.contains("court")
+        
+        val isUrgentThreat = lower.contains("urgent") || lower.contains("immediate") ||
+                             lower.contains("blocked") || lower.contains("suspended")
+        
+        Log.d("AudioService", "Detection: bank=$isBankThreat kyc=$isKycThreat lottery=$isLotteryThreat legal=$isLegalThreat urgent=$isUrgentThreat")
+        
+        if (isBankThreat || isKycThreat || isLotteryThreat || isLegalThreat || isUrgentThreat) {
+            val scamType = when {
+                isBankThreat -> "Bank/OTP Fraud"
+                isKycThreat -> "KYC Scam"
+                isLotteryThreat -> "Lottery Scam"
+                isLegalThreat -> "Legal Threat"
+                else -> "Urgent Scam"
+            }
+            Log.w("AudioService", "⚠️ THREAT DETECTED: $scamType - Triggering alert!")
+            threatsBlocked++
+            showThreatAlert(scamType, 95)
         }
     }
 
     @SuppressLint("MissingPermission")
     private fun showThreatAlert(scamType: String, risk: Int) {
+        Log.w("AudioService", "🚨 showThreatAlert CALLED with: $scamType")
+        
         val channelId = "ShieldCallAlerts"
         
+        // Create channel
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(channelId, "Threat Alerts", NotificationManager.IMPORTANCE_HIGH)
             channel.enableVibration(true)
             channel.vibrationPattern = longArrayOf(0, 500, 200, 500, 200, 1000)
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
+            Log.d("AudioService", "Notification channel created")
         }
         
-        // Launch Main Activity with warning flag? Or just high-priority notification.
-        val intent = Intent(this, MainActivity::class.java).apply {
+        // DIRECT VIBRATION (Fallback if notification doesn't vibrate)
+        try {
+            val vibrator = getSystemService(android.os.Vibrator::class.java)
+            if (vibrator?.hasVibrator() == true) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    vibrator.vibrate(android.os.VibrationEffect.createWaveform(longArrayOf(0, 500, 200, 500, 200, 1000), -1))
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(longArrayOf(0, 500, 200, 500, 200, 1000), -1)
+                }
+                Log.d("AudioService", "Direct vibration triggered")
+            }
+        } catch (e: Exception) {
+            Log.e("AudioService", "Vibration failed: ${e.message}")
+        }
+        
+        // Broadcast RED SCREEN to UI
+        sendBroadcastUpdate("🚨 SCAM DETECTED: $scamType")
+        
+        // Launch FULL-SCREEN RED ALERT Activity
+        val alertIntent = Intent(this, ThreatAlertActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra("THREAT_ALERT", true)
             putExtra("THREAT_TYPE", scamType)
         }
-        val pendingIntent = PendingIntent.getActivity(this, 1, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        startActivity(alertIntent)
+        
+        // Also send notification for when app is in background
+        val notifIntent = Intent(this, ThreatAlertActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra("THREAT_TYPE", scamType)
+        }
+        val pendingIntent = PendingIntent.getActivity(this, 1, notifIntent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
 
         val notification = NotificationCompat.Builder(this, channelId)
             .setContentTitle("🚨 POTENTIAL SCAM DETECTED!")
             .setContentText("$scamType (Risk: $risk%)")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVibrate(longArrayOf(0, 500, 200, 500))
-            .setFullScreenIntent(pendingIntent, true) // Red Screen Overlay effect via Activity
+            .setFullScreenIntent(pendingIntent, true)
             .setAutoCancel(true)
             .build()
             
         try {
-            androidx.core.app.NotificationManagerCompat.from(this).notify(System.currentTimeMillis().toInt(), notification)
+            val notifManager = androidx.core.app.NotificationManagerCompat.from(this)
+            if (notifManager.areNotificationsEnabled()) {
+                notifManager.notify(System.currentTimeMillis().toInt(), notification)
+                Log.d("AudioService", "Notification posted successfully")
+            } else {
+                Log.e("AudioService", "Notifications are DISABLED - user needs to enable them!")
+            }
         } catch (e: Exception) {
             Log.e("AudioService", "Notify failed: ${e.message}")
         }

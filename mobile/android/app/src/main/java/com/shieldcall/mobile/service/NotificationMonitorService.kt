@@ -41,7 +41,7 @@ class NotificationMonitorService : NotificationListenerService() {
     }
 
     private fun sendToBackend(text: String, source: String) {
-        val baseUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://10.0.2.2:8000") ?: "http://10.0.2.2:8000"
+        val baseUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://192.168.1.100:8000") ?: "http://192.168.1.100:8000"
         val json = JSONObject().apply {
             put("text", text)
             put("source", source)

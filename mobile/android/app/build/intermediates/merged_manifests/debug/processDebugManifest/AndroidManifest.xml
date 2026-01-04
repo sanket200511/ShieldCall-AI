@@ -45,6 +45,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.shieldcall.mobile.ThreatAlertActivity"
+            android:exported="false"
+            android:showOnLockScreen="true"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            android:turnScreenOn="true" />
 
         <service
             android:name="com.shieldcall.mobile.service.AudioService"

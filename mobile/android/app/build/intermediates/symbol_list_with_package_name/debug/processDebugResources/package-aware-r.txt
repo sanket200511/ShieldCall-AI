@@ -2982,6 +2982,7 @@ drawable design_ic_visibility
 drawable design_ic_visibility_off
 drawable design_password_eye
 drawable design_snackbar_background
+drawable dismiss_button_bg
 drawable gradient_bg
 drawable ic_arrow_back_black_24
 drawable ic_call_answer
@@ -3149,6 +3150,7 @@ id action_text
 id actions
 id activity_chooser_view_content
 id add
+id alertContainer
 id alertTitle
 id aligned
 id all
@@ -3558,6 +3560,7 @@ id transition_scene_layoutid_cache
 id transition_transform
 id triangle
 id tvProtectionStatus
+id tvScamType
 id tvShieldStatus
 id tvTranscript
 id unchecked
@@ -3698,6 +3701,7 @@ layout abc_search_view
 layout abc_select_dialog_material
 layout abc_tooltip
 layout activity_main
+layout activity_threat_alert
 layout custom_dialog
 layout design_bottom_navigation_item
 layout design_bottom_sheet_dialog

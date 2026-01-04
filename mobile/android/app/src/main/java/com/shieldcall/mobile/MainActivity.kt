@@ -59,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         findViewById<android.view.View>(R.id.cardAction).setOnClickListener {
             // Deep link to Web Reporting Page
             // Deep link to Web Reporting Page. Extract IP from full URL if needed, or just use base.
-            val fullUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://10.0.2.2:8000") ?: "http://10.0.2.2:8000"
+            val fullUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://192.168.1.100:8000") ?: "http://192.168.1.100:8000"
             // Start Activity needs a clean URL. For now, just open the report page.
             val intent = Intent(Intent.ACTION_VIEW)
             intent.data = Uri.parse("$fullUrl/report_mobile_landing") // Assuming your backend has a redirect or frontend handles this
@@ -97,8 +97,9 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         val intentFilter = android.content.IntentFilter("com.shieldcall.mobile.TRANSCRIPT")
+        // Use EXPORTED because Service broadcasts are treated as external on some devices
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(transcriptReceiver, intentFilter, Context.RECEIVER_NOT_EXPORTED)
+            registerReceiver(transcriptReceiver, intentFilter, Context.RECEIVER_EXPORTED)
         } else {
             registerReceiver(transcriptReceiver, intentFilter)
         }
@@ -110,7 +111,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showServerConfigDialog() {
-        val currentUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://10.0.2.2:8000")
+        val currentUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://192.168.1.100:8000")
         val input = EditText(this)
         input.setText(currentUrl)
         input.hint = "http://192.168.1.X:8000"
@@ -160,7 +161,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkBlacklist(phone: String) {
-        val baseUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://10.0.2.2:8000") ?: "http://10.0.2.2:8000"
+        val baseUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://192.168.1.100:8000") ?: "http://192.168.1.100:8000"
         val request = Request.Builder()
             .url("$baseUrl/blacklist/check?phone=$phone")
             .build()

@@ -175,10 +175,33 @@ def analyze_text(req: TextAnalysisRequest):
         "patterns": list(set(detected_patterns))
     }
 
-# --- NEW: Blacklist Module ---
-blacklist_memory = {
-    "+919876543210", "+919988776655", "+918888888888", "+917777766666", "+919123456789"
-}
+# --- JSON File Storage for Offline Persistence ---
+DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
+BLACKLIST_FILE = os.path.join(DATA_DIR, "blacklist.json")
+THREATS_FILE = os.path.join(DATA_DIR, "threats.json")
+
+def ensure_data_dir():
+    if not os.path.exists(DATA_DIR):
+        os.makedirs(DATA_DIR)
+
+def load_json_file(filepath, default):
+    ensure_data_dir()
+    if os.path.exists(filepath):
+        try:
+            with open(filepath, 'r', encoding='utf-8') as f:
+                return json.load(f)
+        except:
+            return default
+    return default
+
+def save_json_file(filepath, data):
+    ensure_data_dir()
+    with open(filepath, 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+# Initialize from files (persistent across restarts)
+blacklist_data = load_json_file(BLACKLIST_FILE, [])
+threat_memory = load_json_file(THREATS_FILE, [])
 
 class BlacklistRequest(BaseModel):
     phone: str
@@ -189,6 +212,7 @@ class BlacklistRequest(BaseModel):
 def check_blacklist(phone: str):
     is_blacklisted = False
     details = "Number is safe."
+    report_count = 0
     
     # 1. Check Supabase
     if supabase:
@@ -196,36 +220,42 @@ def check_blacklist(phone: str):
             res = supabase.table('blacklist').select("*").eq("phone_number", phone).execute()
             if res.data and len(res.data) > 0:
                 is_blacklisted = True
-                details = f"Reported {len(res.data)} times. Flagged as Scam."
+                report_count = len(res.data)
+                details = f"Reported {report_count} times. Flagged as Scam."
         except:
-            pass # Fallback to memory
+            pass
             
-    # 2. Check Memory (Fallback/Demo)
-    if not is_blacklisted and phone in blacklist_memory:
-        is_blacklisted = True
-        details = "Flagged in local database."
+    # 2. Check JSON File (Fallback)
+    if not is_blacklisted:
+        matches = [b for b in blacklist_data if b.get("phone_number") == phone]
+        if matches:
+            is_blacklisted = True
+            report_count = len(matches)
+            details = f"Reported {report_count} times. Flagged in local database."
         
-    return {"phone": phone, "is_blacklisted": is_blacklisted, "details": details}
+    return {"phone": phone, "is_blacklisted": is_blacklisted, "details": details, "report_count": report_count}
 
 @app.post("/blacklist/report")
 def report_blacklist(req: BlacklistRequest):
+    global blacklist_data
+    
+    new_entry = {
+        "phone_number": req.phone,
+        "reason": req.reason,
+        "reported_by": req.reported_by,
+        "created_at": datetime.datetime.now().isoformat()
+    }
+    
     # 1. Add to Supabase
     if supabase:
         try:
-            supabase.table('blacklist').insert({
-                "phone_number": req.phone,
-                "reason": req.reason,
-                "reported_by": req.reported_by,
-                "created_at": datetime.datetime.now().isoformat()
-            }).execute()
+            supabase.table('blacklist').insert(new_entry).execute()
         except Exception as e:
             print(f"Supabase Error: {e}")
             
-    # 2. Add to Memory
-    blacklist_memory.add(req.phone)
-    
-    # 3. Notify Connected Clients (Live Update)
-    # We can broadcast a 'NEW_BLACKLIST_REPORT' event if needed
+    # 2. Add to JSON file
+    blacklist_data.append(new_entry)
+    save_json_file(BLACKLIST_FILE, blacklist_data)
     
     return {"status": "success", "message": f"Reported {req.phone} to global blacklist."}
 
@@ -238,9 +268,9 @@ def list_blacklist():
             return res.data
         except: pass
         
-    # 2. Memory Fallback
-    # convert set to list of objects
-    return [{"phone_number": p, "reason": "Local Block", "reported_by": "System", "created_at": datetime.datetime.now().isoformat()} for p in blacklist_memory]
+    # 2. JSON Fallback (sorted by created_at descending)
+    sorted_list = sorted(blacklist_data, key=lambda x: x.get('created_at', ''), reverse=True)
+    return sorted_list[:50]
 
 @app.get("/devices")
 def get_devices():
@@ -248,32 +278,25 @@ def get_devices():
 
 @app.get("/stats")
 def get_stats():
-    scams = 0
-    blocked = 0
-    protected = len(manager.device_map) # + some base count if desired
+    scams = len(threat_memory)  # Use JSON-backed threat_memory
+    blocked = len(blacklist_data)
+    protected = len(manager.device_map)
     
     if supabase:
         try:
-            # Note: count='exact', head=True is efficient way to get count without fetching data
-            # But supabase-py syntax varies. Using simple select for now or hardcoded simulation if needed.
-            # Assuming small scale for demo.
             r1 = supabase.table('reports').select("id", count='exact').execute()
             r2 = supabase.table('blacklist').select("id", count='exact').execute()
             
             scams = r1.count if r1.count is not None else len(r1.data)
             blocked = r2.count if r2.count is not None else len(r2.data)
         except:
-            scams = 12 # Mock fallback
-            blocked = len(blacklist_memory)
+            pass  # Use JSON fallback counts
 
     return {
         "scams": scams,
-        "protected": max(protected, 1), # At least 1 if empty
+        "protected": max(protected, 1),
         "blocked": blocked
     }
-
-# --- NEW: Threat History Module ---
-threat_memory = [] # Fallback storage
 
 @app.get("/threats/recent")
 def get_recent_threats():
@@ -281,12 +304,11 @@ def get_recent_threats():
     if supabase:
         try:
             res = supabase.table('reports').select("*").order("created_at", desc=True).limit(50).execute()
-            # Map proper keys if needed, assuming direct mapping for now
             return [{"id": r['id'], "phone": r['phone_number'], "scam_type": r['scam_type'], "risk_score": r['risk_score'], "transcript_snippet": r['transcript'], "timestamp": r['created_at']} for r in res.data]
         except: pass
         
-    # 2. Fallback Memory
-    return sorted(threat_memory, key=lambda x: x['timestamp'], reverse=True)[:50]
+    # 2. JSON Fallback
+    return sorted(threat_memory, key=lambda x: x.get('timestamp', ''), reverse=True)[:50]
 
 # --- Existing Endpoints (Stats, WS, etc) ---
 # ... (Keeping previous WebSocket logic intact)
@@ -333,6 +355,7 @@ async def websocket_endpoint(websocket: WebSocket):
                 if risk_score > 50:
                     payload = {
                         "type": "NEW_THREAT",
+                        "id": str(uuid.uuid4()),
                         "phone": manager.device_map.get(websocket, {}).get('name', 'Mobile Client'),
                         "scam_type": message.get('scam_type', 'Voice Phishing'),
                         "risk_score": min(99, risk_score),
@@ -341,8 +364,9 @@ async def websocket_endpoint(websocket: WebSocket):
                     }
                     await manager.broadcast(payload)
                     
-                    # Store in Memory (Fallback)
+                    # Store in JSON (Persistent)
                     threat_memory.append(payload)
+                    save_json_file(THREATS_FILE, threat_memory)
                     
                     if supabase:
                         try:

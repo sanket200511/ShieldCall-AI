@@ -33,6 +33,13 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".ThreatAlertActivity"
+            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
+            android:showOnLockScreen="true"
+            android:turnScreenOn="true"
+            android:exported="false" />
+
         <service
             android:name=".service.AudioService"
             android:foregroundServiceType="microphone"
