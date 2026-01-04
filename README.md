@@ -1,17 +1,20 @@
-# ShieldCall AI 🛡️
-### Real-Time AI Fraud Detection Ecosystem
+# Byte Quest Hackathon Submission
 
-**Problem Statement**: PS 11 - Real-Time Audio Fraud Detection for Scam Prevention  
-**Team**: Vibe Toh Hai  
-**Event**: Byte Quest Hackathon 2025
+**1. Problem Statement**: PS 11 - Real-Time Audio Fraud Detection for Scam Prevention  
+**2. Project Name**: ShieldCall AI  
+**3. Team Name**: Vibe Toh Hai  
+**4. Deployed Link**: Not deployed (local demo available)  
+**5. Demonstration Video**: [Watch Demo Video](https://drive.google.com/file/d/1kd7DRJchz4l-CZ5qZWfQBIySL7QFSzjI/view?usp=drive_link)  
+**6. PPT Link**: [View Presentation (PDF)](https://drive.google.com/file/d/1HasRAs1MC97HqUN0sobOuLuBmRLG6PHK/view?usp=drive_link)
 
 ---
 
-## 🌟 Overview
+# ShieldCall AI 🛡️
+### Real-Time AI Fraud Detection Ecosystem
 
 **ShieldCall AI** protects vulnerable users (especially the elderly) from voice and SMS scams in real-time. It combines a mobile app for on-device detection with a powerful web dashboard for family/community monitoring.
 
-## 🎯 Key Features
+## 🌟 Key Features
 
 ### 📱 Mobile App (Android)
 - **Live Audio Monitor**: Real-time Speech-to-Text scam detection
@@ -32,7 +35,7 @@
 |-------|------------|
 | Frontend | React, Tailwind CSS, Vite |
 | Backend | Python (FastAPI), WebSockets |
-| Database | Supabase (PostgreSQL) or JSON files |
+| Database | Supabase (PostgreSQL) / JSON files |
 | Mobile | Native Android (Kotlin) |
 
 ## 🚀 Quick Start
@@ -55,60 +58,15 @@ npm run dev
 1. Open `mobile/android` in Android Studio
 2. Build APK: `Build > Build APK(s)`
 3. Install on device
-4. Tap ⚙️ Settings → Enter your Backend URL (e.g., `http://YOUR_PC_IP:8000`)
+4. Tap ⚙️ Settings → Enter your Backend URL
 
-## ⚙️ Configuration
+## 📱 Usage
 
-### Environment Variables
-
-**Backend** (`.env` in `/backend`):
-```env
-SUPABASE_URL=your_supabase_url  # Optional - uses JSON files if not set
-SUPABASE_KEY=your_supabase_key
-```
-
-**Frontend**: Uses dynamic URL detection. Set `VITE_API_URL` in `.env` for hosted deployment.
-
-**Mobile**: Configure via Settings dialog in app (saved to SharedPreferences).
-
-## 📁 Data Storage
-
-Without Supabase, the backend uses local JSON files:
-- `backend/data/blacklist.json` - Community blocklist
-- `backend/data/threats.json` - Detected threat history
-
-## 🔗 API Endpoints
-
-| Endpoint | Description |
-|----------|-------------|
-| `GET /stats` | Dashboard statistics |
-| `GET /devices` | Connected devices list |
-| `GET /threats/recent` | Recent threat history |
-| `GET /blacklist/list` | Community blocklist |
-| `GET /blacklist/check?phone=X` | Check if number is blacklisted |
-| `POST /blacklist/report` | Report a scam number |
-| `POST /analyze/text` | Analyze text for scam patterns |
-| `POST /report/generate` | Generate PDF complaint |
-| `WS /ws/monitor` | WebSocket for real-time updates |
-
-## 📱 Mobile App Usage
-
-1. **Activate Shield**: Tap the central shield button
-2. **Speak**: Say scam-related words like:
-   - "Bank account OTP"
-   - "KYC verification"
-   - "Lottery winner"
-   - "Police arrest"
-3. **Alert Triggers**: Full-screen red alert + vibration
-4. **Check Blacklist**: Tap "Lookup" to verify any phone number
-
-## 🌐 Deployment
-
-See [deployment_guide.md](deployment_guide.md) for hosting on:
-- **Railway** (Backend)
-- **Vercel** (Frontend)
-- **Play Store** (Mobile APK)
+1. **Activate Shield**: Tap the central shield button on mobile app
+2. **Speak**: Say scam-related words like "Bank OTP", "KYC verification"
+3. **Alert**: Full-screen red alert + vibration triggers
+4. **Monitor**: Family dashboard shows real-time threats
 
 ## 📄 License
 
-MIT License - Built for Byte Quest Hackathon 2025
+MIT License - Built for Byte Quest Hackathon 2026
