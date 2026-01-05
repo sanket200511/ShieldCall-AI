@@ -19,6 +19,8 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.shieldcall.mobile.service.AudioService
 import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import java.io.IOException
 
@@ -145,25 +147,137 @@ class MainActivity : AppCompatActivity() {
 
 
     private fun showBlacklistCheckDialog() {
-        val input = EditText(this)
-        input.hint = "+919876543210"
+        // Create styled container
+        val container = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(60, 40, 60, 20)
+        }
+        
+        val phoneInput = EditText(this).apply {
+            hint = "Enter phone number"
+            inputType = android.text.InputType.TYPE_CLASS_PHONE
+            setBackgroundResource(android.R.drawable.edit_text)
+            setPadding(30, 25, 30, 25)
+        }
+        container.addView(phoneInput)
+        
+        // Add hint text
+        val hintText = TextView(this).apply {
+            text = "Enter with or without country code\nExample: 9988776655 or +919988776655"
+            textSize = 12f
+            setTextColor(android.graphics.Color.GRAY)
+            setPadding(0, 16, 0, 0)
+        }
+        container.addView(hintText)
 
-        AlertDialog.Builder(this)
-            .setTitle("Crowd Source Blacklist")
-            .setMessage("Enter number to check:")
-            .setView(input)
+        AlertDialog.Builder(this, androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert)
+            .setTitle("🔍 Check Phone Number")
+            .setView(container)
             .setPositiveButton("Check") { _, _ ->
-                val phone = input.text.toString()
+                val phone = phoneInput.text.toString().trim()
                 if (phone.isNotEmpty()) checkBlacklist(phone)
+            }
+            .setNeutralButton("Report Instead") { _, _ ->
+                val phone = phoneInput.text.toString().trim()
+                showReportNumberDialog(phone)
             }
             .setNegativeButton("Cancel", null)
             .show()
     }
+    
+    private fun showReportNumberDialog(prefillPhone: String = "") {
+        val container = android.widget.LinearLayout(this).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            setPadding(60, 40, 60, 20)
+        }
+        
+        val phoneLabel = TextView(this).apply {
+            text = "Phone Number"
+            textSize = 14f
+            setTextColor(android.graphics.Color.WHITE)
+        }
+        container.addView(phoneLabel)
+        
+        val phoneInput = EditText(this).apply {
+            hint = "+919876543210"
+            setText(prefillPhone)
+            inputType = android.text.InputType.TYPE_CLASS_PHONE
+            setBackgroundResource(android.R.drawable.edit_text)
+            setPadding(30, 25, 30, 25)
+        }
+        container.addView(phoneInput)
+        
+        val reasonLabel = TextView(this).apply {
+            text = "\nReason / Scam Type"
+            textSize = 14f
+            setTextColor(android.graphics.Color.WHITE)
+        }
+        container.addView(reasonLabel)
+        
+        val reasonInput = EditText(this).apply {
+            hint = "e.g. KYC Scam, Lottery Fraud"
+            setBackgroundResource(android.R.drawable.edit_text)
+            setPadding(30, 25, 30, 25)
+        }
+        container.addView(reasonInput)
+
+        AlertDialog.Builder(this, androidx.appcompat.R.style.Theme_AppCompat_Dialog_Alert)
+            .setTitle("🚨 Report Scam Number")
+            .setView(container)
+            .setPositiveButton("Report") { _, _ ->
+                val phone = phoneInput.text.toString().trim()
+                val reason = reasonInput.text.toString().trim()
+                if (phone.isNotEmpty() && reason.isNotEmpty()) {
+                    reportToBlacklist(phone, reason)
+                } else {
+                    Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+    
+    private fun reportToBlacklist(phone: String, reason: String) {
+        val baseUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://192.168.1.100:8000") ?: "http://192.168.1.100:8000"
+        
+        val json = JSONObject().apply {
+            put("phone", phone)
+            put("reason", reason)
+            put("reported_by", "MobileApp")
+        }
+        
+        val requestBody = json.toString().toRequestBody("application/json; charset=utf-8".toMediaType())
+        
+        val request = Request.Builder()
+            .url("$baseUrl/blacklist/report")
+            .post(requestBody)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                runOnUiThread {
+                    Toast.makeText(this@MainActivity, "Report Failed: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                runOnUiThread {
+                    if (response.isSuccessful) {
+                        Toast.makeText(this@MainActivity, "✅ Number reported to blacklist!", Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(this@MainActivity, "Report failed: ${response.code}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+    }
 
     private fun checkBlacklist(phone: String) {
         val baseUrl = getSharedPreferences("ShieldCallPrefs", MODE_PRIVATE).getString("server_url", "http://192.168.1.100:8000") ?: "http://192.168.1.100:8000"
+        // URL encode the phone number to handle spaces and special chars
+        val encodedPhone = java.net.URLEncoder.encode(phone.replace(" ", ""), "UTF-8")
         val request = Request.Builder()
-            .url("$baseUrl/blacklist/check?phone=$phone")
+            .url("$baseUrl/blacklist/check?phone=$encodedPhone")
             .build()
 
 

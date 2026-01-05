@@ -21,7 +21,7 @@ const ReportPage = () => {
         setStatus(null);
 
         try {
-            const response = await fetch(`${API_BASE_URL} /report/generate`, {
+            const response = await fetch(`${API_BASE_URL}/report/generate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

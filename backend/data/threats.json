@@ -1,0 +1,29 @@
+[
+  {
+    "type": "NEW_THREAT",
+    "id": "5245259f-f42d-4833-b705-f5f6e8e87d3b",
+    "phone": "Xiaomi 22101316I",
+    "scam_type": "Voice Phishing",
+    "risk_score": 95,
+    "transcript_snippet": "I am calling back you have given OTP please give me OTP",
+    "timestamp": "2026-01-05T05:22:42.630427"
+  },
+  {
+    "type": "NEW_THREAT",
+    "id": "06cd6668-b5bc-43c5-b6ce-11fe98b4270a",
+    "phone": "Xiaomi 22101316I",
+    "scam_type": "Voice Phishing",
+    "risk_score": 95,
+    "transcript_snippet": "you want a lottery please give me your ticket",
+    "timestamp": "2026-01-05T05:23:31.571087"
+  },
+  {
+    "type": "NEW_THREAT",
+    "id": "52fb5cf4-b306-4cb7-be05-c039d746e01e",
+    "phone": "Xiaomi 22101316I",
+    "scam_type": "Voice Phishing",
+    "risk_score": 99,
+    "transcript_snippet": "congratulation you have won lottery please send your OTP",
+    "timestamp": "2026-01-05T07:25:48.747901"
+  }
+]

@@ -83,51 +83,62 @@ class PDF(FPDF):
 
 @app.post("/report/generate")
 async def generate_report(req: ReportRequest):
-    pdf = PDF()
-    pdf.add_page()
-    
-    # Title Section
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt=f"Date: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}", ln=1, align='R')
-    pdf.ln(10)
-    
-    # To Address
-    pdf.set_font("Arial", 'B', 12)
-    pdf.cell(0, 10, "To,", ln=1)
-    pdf.cell(0, 10, "The Nodal Officer,", ln=1)
-    pdf.cell(0, 10, "Cyber Crime Cell / National Cyber Crime Reporting Portal,", ln=1)
-    pdf.cell(0, 10, "Government of India.", ln=1)
-    pdf.ln(10)
-    
-    # Subject
-    pdf.set_font("Arial", 'B', 12)
-    pdf.cell(0, 10, f"Subject: Complaint regarding {req.scam_type} attempt from {req.scammer_phone}", ln=1)
-    pdf.ln(10)
-    
-    # Body
-    pdf.set_font("Arial", size=12)
-    body = (
-        f"Respected Sir/Madam,\n\n"
-        f"I, {req.victim_name}, would like to report a suspected fraud attempt targeting me.\n\n"
-        f"Details of the Suspect:\n"
-        f"- Phone Number: {req.scammer_phone}\n"
-        f"- Modus Operandi: {req.scam_type}\n\n"
-        f"Incident Description:\n{req.description}\n\n"
-        f"Transcript/Evidence Captured by ShieldCall AI:\n"
-        f"---------------------------------------------------\n"
-        f"\"{req.evidence_text}\"\n"
-        f"---------------------------------------------------\n\n"
-        f"I request you to take necessary action against this number to prevent further financial loss to citizens.\n\n"
-        f"Sincerely,\n"
-        f"{req.victim_name}\n"
-        f"Generated via ShieldCall App"
-    )
-    pdf.multi_cell(0, 10, body)
-    
-    filename = f"report_{uuid.uuid4()}.pdf"
-    pdf.output(filename)
-    
-    return FileResponse(filename, filename="CyberCrime_Complaint.pdf")
+    try:
+        pdf = PDF()
+        pdf.add_page()
+        
+        # Title Section
+        pdf.set_font("Arial", size=12)
+        pdf.cell(200, 10, txt=f"Date: {datetime.datetime.now().strftime('%Y-%m-%d %H:%M')}", ln=1, align='R')
+        pdf.ln(10)
+        
+        # To Address
+        pdf.set_font("Arial", 'B', 12)
+        pdf.cell(0, 10, "To,", ln=1)
+        pdf.cell(0, 10, "The Nodal Officer,", ln=1)
+        pdf.cell(0, 10, "Cyber Crime Cell / National Cyber Crime Reporting Portal,", ln=1)
+        pdf.cell(0, 10, "Government of India.", ln=1)
+        pdf.ln(10)
+        
+        # Subject - sanitize special characters
+        subject = f"Subject: Complaint regarding {req.scam_type} attempt from {req.scammer_phone}"
+        pdf.set_font("Arial", 'B', 12)
+        pdf.cell(0, 10, subject.encode('latin-1', 'replace').decode('latin-1'), ln=1)
+        pdf.ln(10)
+        
+        # Body - sanitize special characters (₹ -> Rs, etc)
+        pdf.set_font("Arial", size=12)
+        
+        # Clean the input text (replace Unicode chars that Arial can't handle)
+        clean_desc = req.description.replace('₹', 'Rs.').replace('—', '-').replace('"', '"').replace('"', '"')
+        clean_evidence = req.evidence_text.replace('₹', 'Rs.').replace('—', '-').replace('"', '"').replace('"', '"')
+        clean_name = req.victim_name.encode('latin-1', 'replace').decode('latin-1')
+        
+        body = (
+            f"Respected Sir/Madam,\n\n"
+            f"I, {clean_name}, would like to report a suspected fraud attempt targeting me.\n\n"
+            f"Details of the Suspect:\n"
+            f"- Phone Number: {req.scammer_phone}\n"
+            f"- Modus Operandi: {req.scam_type}\n\n"
+            f"Incident Description:\n{clean_desc}\n\n"
+            f"Transcript/Evidence Captured by ShieldCall AI:\n"
+            f"---------------------------------------------------\n"
+            f"\"{clean_evidence}\"\n"
+            f"---------------------------------------------------\n\n"
+            f"I request you to take necessary action against this number to prevent further financial loss to citizens.\n\n"
+            f"Sincerely,\n"
+            f"{clean_name}\n"
+            f"Generated via ShieldCall App"
+        )
+        pdf.multi_cell(0, 10, body.encode('latin-1', 'replace').decode('latin-1'))
+        
+        filename = f"report_{uuid.uuid4()}.pdf"
+        pdf.output(filename)
+        
+        return FileResponse(filename, filename="CyberCrime_Complaint.pdf", media_type="application/pdf")
+    except Exception as e:
+        print(f"PDF Generation Error: {e}")
+        raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
 
 @app.get("/report_mobile_landing")
 async def report_mobile_landing(request: Request):
@@ -147,11 +158,13 @@ async def report_mobile_landing(request: Request):
 def analyze_text(req: TextAnalysisRequest):
     text = req.text.lower()
     
-    # NLP / Keyword Logic (Mocking sophisticated NLP for now)
+    # NLP / Keyword Logic - Comprehensive scam detection
     scam_patterns = {
-        "urgeny": ["immediately", "urgent", "24 hours", "blocked", "suspend"],
-        "financial": ["bank", "account", "kyc", "pan", "aadhar", "credit card", "limit"],
-        "action": ["click", "link", "download", "apk", "install", "pay", "transfer"]
+        "urgency": ["immediately", "urgent", "24 hours", "blocked", "suspend", "expires", "deadline"],
+        "financial": ["bank", "account", "kyc", "pan", "aadhar", "credit card", "limit", "otp", "password"],
+        "action": ["click", "link", "download", "apk", "install", "pay", "transfer", "deposit", "send"],
+        "lottery": ["lottery", "prize", "won", "winner", "congratulations", "lakh", "crore", "lucky", "claim"],
+        "threat": ["police", "arrest", "court", "customs", "legal", "case", "warrant"]
     }
     
     detected_patterns = []
@@ -208,11 +221,26 @@ class BlacklistRequest(BaseModel):
     reason: str
     reported_by: str
 
+def normalize_phone(phone: str) -> str:
+    """Normalize phone number for comparison - remove spaces, dashes, and ensure consistent format"""
+    # Remove all non-digit characters except +
+    cleaned = ''.join(c for c in phone if c.isdigit() or c == '+')
+    # If it's just digits, add +91 prefix for Indian numbers
+    if cleaned and not cleaned.startswith('+'):
+        if len(cleaned) == 10:
+            cleaned = '+91' + cleaned
+        elif len(cleaned) == 12 and cleaned.startswith('91'):
+            cleaned = '+' + cleaned
+    return cleaned
+
 @app.get("/blacklist/check")
 def check_blacklist(phone: str):
     is_blacklisted = False
     details = "Number is safe."
     report_count = 0
+    
+    # Normalize the input phone
+    normalized_input = normalize_phone(phone)
     
     # 1. Check Supabase
     if supabase:
@@ -225,9 +253,9 @@ def check_blacklist(phone: str):
         except:
             pass
             
-    # 2. Check JSON File (Fallback)
+    # 2. Check JSON File (Fallback) - Compare normalized versions
     if not is_blacklisted:
-        matches = [b for b in blacklist_data if b.get("phone_number") == phone]
+        matches = [b for b in blacklist_data if normalize_phone(b.get("phone_number", "")) == normalized_input]
         if matches:
             is_blacklisted = True
             report_count = len(matches)

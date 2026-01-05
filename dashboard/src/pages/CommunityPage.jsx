@@ -76,12 +76,12 @@ const CommunityPage = () => {
                 </div>
                 <div className="flex gap-4">
                     <div className="bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg text-center">
-                        <div className="text-xl font-bold text-white">24.5k</div>
+                        <div className="text-xl font-bold text-white">{reports.length}</div>
                         <div className="text-xs text-slate-500">TOTAL BLOCKED</div>
                     </div>
                     <div className="bg-slate-900 border border-slate-700 px-4 py-2 rounded-lg text-center">
-                        <div className="text-xl font-bold text-green-400">+112</div>
-                        <div className="text-xs text-slate-500">TODAY</div>
+                        <div className="text-xl font-bold text-green-400">+{Math.min(reports.length, 5)}</div>
+                        <div className="text-xs text-slate-500">RECENT</div>
                     </div>
                 </div>
             </header>
